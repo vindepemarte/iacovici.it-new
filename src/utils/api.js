@@ -172,49 +172,5 @@ export const verifyPaymentSuccess = async (sessionId) => {
   return await apiRequest(`/payments/success?session_id=${sessionId}`);
 };
 
-const api = {
-  getTemplates,
-  getTemplateById,
-  trackTemplateDownload,
-  getBlogPosts,
-  getBlogPostBySlug,
-  submitContactForm,
-  login,
-  changePassword,
-  getDashboardStats,
-  getDashboardAnalytics,
-  getAdminTemplates,
-  createOrUpdateTemplate,
-  deleteTemplate,
-  getAdminBlogPosts,
-  createOrUpdateBlogPost,
-  deleteBlogPost,
-  getContactSubmissions,
-  createCheckoutSession,
-  verifyPaymentSuccess,
-};
-
-export {
-  API_BASE_URL,
-  getTemplates,
-  getTemplateById,
-  trackTemplateDownload,
-  getBlogPosts,
-  getBlogPostBySlug,
-  submitContactForm,
-  login,
-  changePassword,
-  getDashboardStats,
-  getDashboardAnalytics,
-  getAdminTemplates,
-  createOrUpdateTemplate,
-  deleteTemplate,
-  getAdminBlogPosts,
-  createOrUpdateBlogPost,
-  deleteBlogPost,
-  getContactSubmissions,
-  createCheckoutSession,
-  verifyPaymentSuccess,
-};
-
-export default api;
+// Export the API_BASE_URL for use in other modules
+export { API_BASE_URL };
