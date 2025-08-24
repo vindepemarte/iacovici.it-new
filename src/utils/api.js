@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
@@ -173,6 +173,29 @@ export const verifyPaymentSuccess = async (sessionId) => {
 };
 
 const api = {
+  getTemplates,
+  getTemplateById,
+  trackTemplateDownload,
+  getBlogPosts,
+  getBlogPostBySlug,
+  submitContactForm,
+  login,
+  changePassword,
+  getDashboardStats,
+  getDashboardAnalytics,
+  getAdminTemplates,
+  createOrUpdateTemplate,
+  deleteTemplate,
+  getAdminBlogPosts,
+  createOrUpdateBlogPost,
+  deleteBlogPost,
+  getContactSubmissions,
+  createCheckoutSession,
+  verifyPaymentSuccess,
+};
+
+export {
+  API_BASE_URL,
   getTemplates,
   getTemplateById,
   trackTemplateDownload,

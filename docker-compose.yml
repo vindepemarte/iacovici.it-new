@@ -4,6 +4,19 @@ services:
   web:
     build: .
     # Removed ports directive - Coolify handles port forwarding automatically
+    environment:
+      # Frontend API URL (this will be the public URL of the backend service)
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      # Site URL (this will be the public URL of the frontend service)
+      REACT_APP_SITE_URL: ${REACT_APP_SITE_URL}
+      # Stripe configuration
+      REACT_APP_STRIPE_PUBLISHABLE_KEY: ${REACT_APP_STRIPE_PUBLISHABLE_KEY}
+      # Optional: Analytics
+      REACT_APP_GOOGLE_ANALYTICS_ID: ${REACT_APP_GOOGLE_ANALYTICS_ID}
+      # Optional: Social Media Links
+      REACT_APP_SOCIAL_TELEGRAM: ${REACT_APP_SOCIAL_TELEGRAM}
+      REACT_APP_SOCIAL_GITHUB: ${REACT_APP_SOCIAL_GITHUB}
+      REACT_APP_SOCIAL_LINKEDIN: ${REACT_APP_SOCIAL_LINKEDIN}
     depends_on:
       - db
     networks:
@@ -29,13 +42,30 @@ services:
     build: ./backend
     # Removed ports directive - Coolify handles port forwarding automatically
     environment:
+      # Database configuration
       POSTGRES_HOST: db
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PORT: 5432
+      # JWT configuration
       JWT_SECRET: ${JWT_SECRET}
+      # Backend port
       BACKEND_PORT: 3001
+      # Frontend URL for redirects (Stripe success/cancel URLs)
+      FRONTEND_URL: ${FRONTEND_URL}
+      # Stripe configuration
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      # Email configuration
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      # Optional: Analytics
+      GOOGLE_ANALYTICS_ID: ${GOOGLE_ANALYTICS_ID}
     depends_on:
       - db
     networks:

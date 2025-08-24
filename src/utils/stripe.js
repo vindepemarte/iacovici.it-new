@@ -1,5 +1,6 @@
 // Stripe integration for pro template purchases
 import { loadStripe } from '@stripe/stripe-js';
+import { API_BASE_URL } from './api';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -13,7 +14,7 @@ const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 export const createCheckoutSession = async (templateId, email) => {
   try {
     // Call our backend API to create a Stripe checkout session
-    const response = await fetch('/api/payments/create-checkout', {
+    const response = await fetch(`${API_BASE_URL}/payments/create-checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ export const createCheckoutSession = async (templateId, email) => {
  */
 export const handleSuccessfulPayment = async (sessionId) => {
   try {
-    const response = await fetch(`/api/payments/success?session_id=${sessionId}`);
+    const response = await fetch(`${API_BASE_URL}/payments/success?session_id=${sessionId}`);
     
     if (!response.ok) {
       const errorData = await response.json();
