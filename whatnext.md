@@ -91,6 +91,7 @@ RECENTLY COMPLETED:
 ✓ Fixed Docker build context issues for Coolify deployment
 ✓ Resolved directory naming issues that could cause build problems
 ✓ Simplified docker-compose.yml build paths for Coolify compatibility
+✓ Updated docker-compose.yml to follow Coolify best practices (removed ports, using environment variables)
 
 PROJECT SUMMARY:
 ✓ Full-stack website with React frontend and Node.js/Express backend
@@ -119,6 +120,7 @@ DEPLOYMENT NOTES:
 - Fixed Docker build context issues for Coolify compatibility
 - Resolved directory naming issues that could cause build problems
 - Simplified docker-compose.yml build paths for Coolify compatibility
+- Updated docker-compose.yml to follow Coolify best practices (removed ports, using environment variables)
 - After deploying to Coolify:
   1. Update sensitive environment variables (passwords, secrets, SMTP settings) in Coolify dashboard
   2. Configure custom domain if needed
