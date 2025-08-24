@@ -90,6 +90,7 @@ RECENTLY COMPLETED:
 ✓ Configured environment variables for both local development and production deployment
 ✓ Fixed Docker build context issues for Coolify deployment
 ✓ Resolved directory naming issues that could cause build problems
+✓ Simplified docker-compose.yml build paths for Coolify compatibility
 
 PROJECT SUMMARY:
 ✓ Full-stack website with React frontend and Node.js/Express backend
@@ -117,6 +118,7 @@ DEPLOYMENT NOTES:
 - Environment variables are configured for both local development and production deployment
 - Fixed Docker build context issues for Coolify compatibility
 - Resolved directory naming issues that could cause build problems
+- Simplified docker-compose.yml build paths for Coolify compatibility
 - After deploying to Coolify:
   1. Update sensitive environment variables (passwords, secrets, SMTP settings) in Coolify dashboard
   2. Configure custom domain if needed
