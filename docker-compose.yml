@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+    networks:
+      - iacovici-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: iacovici_db
+      POSTGRES_USER: iacovici_user
+      POSTGRES_PASSWORD: secure_password_change_in_production
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - iacovici-network
+    restart: unless-stopped
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: iacovici_db
+      POSTGRES_USER: iacovici_user
+      POSTGRES_PASSWORD: secure_password_change_in_production
+      POSTGRES_PORT: 5432
+      JWT_SECRET: your_jwt_secret_key_change_in_production
+      BACKEND_PORT: 3001
+    depends_on:
+      - db
+    networks:
+      - iacovici-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  iacovici-network:
+    driver: bridge
