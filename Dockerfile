@@ -26,7 +26,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy logo assets to public directory
-COPY ["Iacovici.it Logo", "/usr/share/nginx/html/logos"]
+COPY iacovici-it-logo /usr/share/nginx/html/logos
 
 # Expose port 80
 EXPOSE 80
