@@ -2,11 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const dotenv = require('dotenv');
+// Removed dotenv import as we're using Docker Compose environment variables
 const path = require('path');
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Removed dotenv.config() as we're using Docker Compose environment variables
 
 // Import routes
 const templateRoutes = require('./routes/templates');

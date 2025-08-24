@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
+// Removed dotenv import as we're using Docker Compose environment variables
 
-dotenv.config();
+// Removed dotenv.config() as we're using Docker Compose environment variables
 
 // Create a new pool instance
 const pool = new Pool({
