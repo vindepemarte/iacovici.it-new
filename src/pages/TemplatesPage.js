@@ -58,10 +58,6 @@ const TemplatesPage = () => {
       alert(`Workflow JSON:\n\n${text}`);
     }
   };
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [pendingAction, setPendingAction] = useState(null);
   const [copySuccess, setCopySuccess] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -125,17 +121,109 @@ const TemplatesPage = () => {
   });
 
   const copyWorkflow = async (template) => {
-    // Show email modal before allowing copy
-    setSelectedTemplate(template);
-    setPendingAction('copy');
-    setShowEmailModal(true);
+    try {
+      // Validate that we have workflow data
+      if (!template.workflow_data_json) {
+        setCopySuccess('Error: No workflow data available');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+
+      let workflowJson;
+      try {
+        // Handle both string and object formats
+        if (typeof template.workflow_data_json === 'string') {
+          const parsed = JSON.parse(template.workflow_data_json);
+          workflowJson = JSON.stringify(parsed, null, 2);
+        } else if (typeof template.workflow_data_json === 'object') {
+          workflowJson = JSON.stringify(template.workflow_data_json, null, 2);
+        } else {
+          throw new Error('Invalid workflow data format');
+        }
+      } catch (parseError) {
+        console.error('Error processing workflow data:', parseError);
+        setCopySuccess('Error: Invalid workflow data format');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(workflowJson);
+        setCopySuccess(`Copied ${template.title} workflow to clipboard!`);
+      } else {
+        copyToClipboardFallback(workflowJson, template.title);
+      }
+      
+      // Track the download
+      try {
+        await trackTemplateDownload(
+          template.id, 
+          'anonymous', // No email required for direct copy
+          null,
+          'free'
+        );
+      } catch (err) {
+        console.error('Error tracking download:', err);
+      }
+      
+      setTimeout(() => setCopySuccess(''), 3000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      setCopySuccess('Failed to copy workflow. Please try again.');
+      setTimeout(() => setCopySuccess(''), 3000);
+    }
   };
 
-  const importToN8n = (template) => {
-    // Show email modal before allowing import
-    setSelectedTemplate(template);
-    setPendingAction('import');
-    setShowEmailModal(true);
+  const importToN8n = async (template) => {
+    try {
+      // Validate that we have workflow data
+      if (!template.workflow_data_json) {
+        setCopySuccess('Error: No workflow data available');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+
+      let workflowData;
+      try {
+        if (typeof template.workflow_data_json === 'string') {
+          workflowData = template.workflow_data_json;
+        } else if (typeof template.workflow_data_json === 'object') {
+          workflowData = JSON.stringify(template.workflow_data_json);
+        } else {
+          throw new Error('Invalid workflow data format');
+        }
+        
+        const encodedData = encodeURIComponent(workflowData);
+        const importUrl = `https://n8n.io/import?data=${encodedData}`;
+        window.open(importUrl, '_blank');
+        
+        setCopySuccess(`Opening n8n import for ${template.title}...`);
+        setTimeout(() => setCopySuccess(''), 3000);
+        
+      } catch (importError) {
+        console.error('Error preparing workflow for import:', importError);
+        setCopySuccess('Error: Cannot import invalid workflow data');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+      
+      // Track the download
+      try {
+        await trackTemplateDownload(
+          template.id, 
+          'anonymous', // No email required for direct import
+          null,
+          'import'
+        );
+      } catch (err) {
+        console.error('Error tracking download:', err);
+      }
+      
+    } catch (err) {
+      console.error('Failed to import:', err);
+      setCopySuccess('Failed to import workflow. Please try again.');
+      setTimeout(() => setCopySuccess(''), 3000);
+    }
   };
 
   const handleWhatsAppPurchase = (template) => {
@@ -144,77 +232,22 @@ const TemplatesPage = () => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const handleEmailSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!selectedTemplate) {
-      setCopySuccess('Error: No template selected');
+  const handleTutorialClick = (template) => {
+    if (!template.tutorial_link) {
+      setCopySuccess('No tutorial available for this template');
       setTimeout(() => setCopySuccess(''), 3000);
       return;
     }
     
-    // Execute the pending action FIRST (while user gesture is still active)
-    let actionSuccess = false;
-    
-    if (pendingAction === 'copy') {
-      // Copy the workflow immediately to preserve user gesture
-      const workflowJson = JSON.stringify(selectedTemplate.workflow_data_json, null, 2);
-      
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(workflowJson);
-          setCopySuccess(`Copied ${selectedTemplate.title} workflow to clipboard!`);
-          actionSuccess = true;
-        } else {
-          // Use fallback method
-          copyToClipboardFallback(workflowJson, selectedTemplate.title);
-          actionSuccess = true;
-        }
-      } catch (err) {
-        console.error('Failed to copy:', err);
-        setCopySuccess('Failed to copy workflow. Please try the download button instead.');
-        actionSuccess = false;
-      }
-    } else if (pendingAction === 'import') {
-      // Import to n8n
-      const workflowData = encodeURIComponent(JSON.stringify(selectedTemplate.workflow_data_json));
-      const importUrl = `https://n8n.io/import?data=${workflowData}`;
-      window.open(importUrl, '_blank');
-      actionSuccess = true;
+    // If the tutorial_link starts with 'http' or 'https', open it as external link
+    if (template.tutorial_link.startsWith('http')) {
+      window.open(template.tutorial_link, '_blank');
+    } else {
+      // Internal link - navigate to blog post
+      // Remove leading slash if present
+      const link = template.tutorial_link.startsWith('/') ? template.tutorial_link.slice(1) : template.tutorial_link;
+      navigate(`/${link}`);
     }
-    
-    // Track the download in the background (after the action)
-    if (actionSuccess) {
-      try {
-        await trackTemplateDownload(
-          selectedTemplate.id, 
-          email, 
-          null, // IP address will be determined by backend
-          pendingAction === 'copy' ? 'free' : 'import'
-        );
-      } catch (err) {
-        console.error('Error tracking download:', err);
-        // Don't show error to user since the main action succeeded
-      }
-    }
-    
-    // Close the modal and reset state
-    setShowEmailModal(false);
-    setEmail('');
-    setPendingAction(null);
-    setSelectedTemplate(null);
-    
-    // Show success message for copy action
-    if (pendingAction === 'copy') {
-      setTimeout(() => setCopySuccess(''), 3000);
-    }
-  };
-
-  const handleEmailModalClose = () => {
-    setShowEmailModal(false);
-    setEmail('');
-    setPendingAction(null);
-    setSelectedTemplate(null);
   };
 
   return (
@@ -388,7 +421,7 @@ const TemplatesPage = () => {
                     className="group card hover:scale-105 hover:shadow-2xl transition-all duration-300 overflow-hidden relative"
                   >
                     {template.is_pro && (
-                      <div className="absolute top-4 right-4 bg-gradient-to-r from-accent-gold to-yellow-500 text-primary-dark px-3 py-1 rounded-full text-xs font-bold z-10">
+                      <div className="absolute top-2 left-2 bg-gradient-to-r from-accent-gold to-yellow-500 text-primary-dark px-2 py-1 rounded-full text-xs font-bold z-10">
                         PRO
                       </div>
                     )}
@@ -422,7 +455,7 @@ const TemplatesPage = () => {
                     
                     <div className="flex flex-wrap gap-2 mb-6">
                       {template.is_pro ? (
-                        <div className="flex items-center bg-gradient-to-r from-yellow-600 to-yellow-500 text-accent-gold px-3 py-2 rounded-lg text-sm font-medium border border-yellow-600">
+                        <div className="flex items-center bg-gradient-to-r from-yellow-600 to-yellow-500 text-white px-3 py-2 rounded-lg text-sm font-medium border border-yellow-600">
                           <ShoppingCart className="w-4 h-4 mr-1" />
                           €{template.price}
                         </div>
@@ -433,10 +466,13 @@ const TemplatesPage = () => {
                         </div>
                       )}
                       {template.tutorial_link && (
-                        <div className="flex items-center bg-blue-900 text-blue-400 px-3 py-1 rounded text-xs">
+                        <button
+                          onClick={() => handleTutorialClick(template)}
+                          className="flex items-center bg-blue-900 hover:bg-blue-800 text-blue-400 hover:text-blue-300 px-3 py-1 rounded text-xs transition-colors duration-200 cursor-pointer"
+                        >
                           <ExternalLink className="w-3 h-3 mr-1" />
                           Tutorial
-                        </div>
+                        </button>
                       )}
                     </div>
                     
@@ -468,8 +504,6 @@ const TemplatesPage = () => {
                         </>
                       )}
                     </div>
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-yellow-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   </motion.div>
                 ))}
               </div>
@@ -477,60 +511,6 @@ const TemplatesPage = () => {
           </div>
         </section>
       </div>
-
-      {/* Email Collection Modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="card max-w-md w-full relative">
-            <button
-              onClick={handleEmailModalClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-primary-light"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            
-            <div className="text-center mb-6">
-              <div className="bg-primary-dark rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-accent-gold" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">
-                {pendingAction === 'copy' ? 'Copy Workflow' : 'Import to n8n'}
-              </h3>
-              <p className="text-gray-400">
-                Enter your email to access the {selectedTemplate?.title} template
-              </p>
-            </div>
-            
-            <form onSubmit={handleEmailSubmit}>
-              <div className="mb-6">
-                <label htmlFor="email" className="block text-sm font-medium mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  className="form-input w-full"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoFocus
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  We'll send you download instructions and updates
-                </p>
-              </div>
-              
-              <button
-                type="submit"
-                className="btn-primary w-full"
-              >
-                {pendingAction === 'copy' ? 'Copy Workflow' : 'Import to n8n'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 };
