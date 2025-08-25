@@ -13,6 +13,7 @@ import {
   Loader
 } from 'lucide-react';
 import { getBlogPosts } from '../utils/api';
+import { mockBlogPosts } from '../data/mockData';
 
 const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,12 +23,22 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch blog posts from API
+  // Fetch blog posts from API with fallback to mock data
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        const posts = await getBlogPosts();
+        let posts;
+        
+        try {
+          // Try to fetch from API first
+          posts = await getBlogPosts();
+        } catch (apiError) {
+          console.warn('API failed, using fallback data:', apiError);
+          // Use mock data as fallback
+          posts = mockBlogPosts;
+        }
+        
         // Transform the data to match the expected format
         const transformedPosts = posts.map(post => ({
           id: post.id,
@@ -35,10 +46,10 @@ const BlogPage = () => {
           slug: post.slug,
           excerpt: post.excerpt,
           author: post.author,
-          publicationDate: post.publication_date,
+          publicationDate: post.publication_date || post.publication_date,
           featuredImage: post.featured_image,
           tags: post.tags || [],
-          readTime: Math.ceil((post.excerpt?.length || 0) / 200) || 5, // Estimate read time
+          readTime: post.read_time || Math.ceil((post.excerpt?.length || 0) / 200) || 5, // Use read_time or estimate
           seoTitle: post.seo_title,
           seoDescription: post.seo_description
         }));
@@ -177,8 +188,8 @@ const BlogPage = () => {
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedTag === tag
-                      ? 'bg-accent-gold text-primary-dark'
-                      : 'bg-primary-gray text-gray-300 hover:bg-accent-gold/20 hover:text-accent-gold'
+                    ? 'bg-accent-gold text-primary-dark'
+                    : 'bg-primary-gray text-gray-300 hover:bg-accent-gold/20 hover:text-accent-gold'
                     }`}
                 >
                   {tag}

@@ -20,6 +20,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { getTemplates, trackTemplateDownload } from '../utils/api';
+import { mockTemplates } from '../data/mockData';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
@@ -83,12 +84,22 @@ const TemplatesPage = () => {
     }
   };
 
-  // Fetch templates from API
+  // Fetch templates from API with fallback to mock data
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
         setLoading(true);
-        const data = await getTemplates();
+        let data;
+        
+        try {
+          // Try to fetch from API first
+          data = await getTemplates();
+        } catch (apiError) {
+          console.warn('API failed, using fallback data:', apiError);
+          // Use mock data as fallback
+          data = mockTemplates;
+        }
+        
         // Add slug property for linking
         const templatesWithSlug = data.map(template => ({
           ...template,

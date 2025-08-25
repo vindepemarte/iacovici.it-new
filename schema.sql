@@ -196,9 +196,9 @@ INSERT INTO users (email, password_hash, name, role, api_key) VALUES
     '$2a$10$42uwZyATRNtHZOJglb/IX./2Gx8ShCVRDCJcP6MTeaUSUs66DJ0vi',
     'Administrator',
     'admin',
-    'iak_live_' || md5(random()::text || clock_timestamp()::text)
+    'iak_live_' || md5(random()::text || clock_timestamp()::text || 'iacovici_secret_salt')
 ) ON CONFLICT (email) DO UPDATE SET 
-    api_key = COALESCE(users.api_key, 'iak_live_' || md5(random()::text || clock_timestamp()::text));
+    api_key = COALESCE(users.api_key, 'iak_live_' || md5(random()::text || clock_timestamp()::text || 'iacovici_secret_salt'));
 
 -- Create triggers to automatically update the updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()
