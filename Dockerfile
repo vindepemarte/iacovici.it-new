@@ -4,11 +4,16 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Set environment variables for better build performance
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV GENERATE_SOURCEMAP=false
+ENV CI=false
+
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev dependencies for build)
+RUN npm ci --silent
 
 # Copy source code
 COPY . .
