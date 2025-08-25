@@ -153,7 +153,19 @@ const ContactPage = () => {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
-                        <p className="text-gray-400">{contactInfo.address}</p>
+                        <div className="text-gray-400">
+                          {typeof contactInfo.address === 'string' ? (
+                            <p>{contactInfo.address}</p>
+                          ) : contactInfo.address && typeof contactInfo.address === 'object' ? (
+                            <div>
+                              <p>{contactInfo.address.street}</p>
+                              <p>{contactInfo.address.city}, {contactInfo.address.zip}</p>
+                              <p>{contactInfo.address.country}</p>
+                            </div>
+                          ) : (
+                            <p>Address not available</p>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-500 mt-1">Available for in-person meetings by appointment</p>
                       </div>
                     </div>

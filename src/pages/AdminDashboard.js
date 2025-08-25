@@ -333,7 +333,7 @@ const AdminDashboard = () => {
         isPro: templateForm.isPro,
         price: templateForm.isPro ? parseFloat(templateForm.price) || 0 : 0,
         tutorialLink: templateForm.tutorialLink,
-        workflowDataJson: workflowData,
+        workflowData: workflowData,
         seoTitle: templateForm.seoTitle,
         seoDescription: templateForm.seoDescription
       };

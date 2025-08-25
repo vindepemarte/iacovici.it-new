@@ -95,7 +95,7 @@ router.get('/dashboard/analytics', async (req, res) => {
 router.get('/templates', async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, title, description, category, is_pro, price, download_count, rating, created_at, updated_at FROM templates ORDER BY created_at DESC'
+      'SELECT id, title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, download_count, rating, created_at, updated_at FROM templates ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (err) {
