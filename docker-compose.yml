@@ -24,12 +24,13 @@ services:
     restart: unless-stopped
 
   db:
-    container_name: db
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Ensure PostgreSQL uses the correct authentication method
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     # Removed ports directive - Coolify handles port forwarding automatically
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -47,7 +48,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: ${POSTGRES_PORT}
       # JWT configuration
       JWT_SECRET: ${JWT_SECRET}
       # Backend port
