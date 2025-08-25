@@ -142,9 +142,10 @@ const TemplatesPage = () => {
     setShowEmailModal(true);
   };
 
-  const handleStripeCheckout = async (template) => {
-    // Navigate to checkout page with template data
-    navigate('/checkout', { state: { template } });
+  const handleWhatsAppPurchase = (template) => {
+    const message = `Hi! I'm interested in purchasing the "${template.title}" template for €${template.price}. Could you please help me with the purchase process?`;
+    const whatsappUrl = `https://wa.me/393780875700?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleEmailSubmit = async (e) => {
@@ -424,10 +425,10 @@ const TemplatesPage = () => {
                     <div className="flex gap-2">
                       {template.is_pro ? (
                         <button
-                          onClick={() => handleStripeCheckout(template)}
+                          onClick={() => handleWhatsAppPurchase(template)}
                           className="btn-primary flex-1 flex items-center justify-center"
                         >
-                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          <MessageSquare className="w-4 h-4 mr-2" />
                           Buy €{template.price}
                         </button>
                       ) : (

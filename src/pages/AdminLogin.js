@@ -38,7 +38,7 @@ const AdminLogin = () => {
         <div className="text-center mb-8">
           <Link to="/" className="inline-block">
             <img 
-              src="/logos/ia-logo-bg.png" 
+              src="/logos/ia-presentation-picture.png" 
               alt="Iacovici.it Logo" 
               className="h-16 w-auto mx-auto mb-4"
             />

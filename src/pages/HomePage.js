@@ -158,7 +158,7 @@ const HomePage = () => {
               >
                 <div className="bg-primary-gray rounded-2xl p-8 shadow-2xl">
                   <img 
-                    src="/logos/ia-logo-bg.png" 
+                    src="/logos/ia-presentation-picture.png" 
                     alt="Iacovici.it Solutions" 
                     className="w-full h-auto"
                     loading="lazy"
