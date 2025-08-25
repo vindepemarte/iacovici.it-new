@@ -33,8 +33,9 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     # Removed ports directive - Coolify handles port forwarding automatically
     volumes:
-      - postgres_data_v2:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_data_v3:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/02-init-db.sql
     networks:
       - iacovici-network
     healthcheck:
@@ -81,7 +82,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data_v2:
+  postgres_data_v3:
     driver: local
 
 networks:
