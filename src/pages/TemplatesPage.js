@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -60,6 +61,13 @@ const TemplatesPage = () => {
   };
   const [copySuccess, setCopySuccess] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Email collection state
+  const [userEmail, setUserEmail] = useState(null); // Store user email once collected
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [email, setEmail] = useState('');
+  const [pendingAction, setPendingAction] = useState(null); // 'copy', 'import', or 'download'
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   // Generate random rating for templates that don't have one
   const generateRandomRating = () => {
@@ -121,6 +129,20 @@ const TemplatesPage = () => {
   });
 
   const copyWorkflow = async (template) => {
+    // Check if we already have user email
+    if (!userEmail) {
+      // Need to collect email first
+      setSelectedTemplate(template);
+      setPendingAction('copy');
+      setShowEmailModal(true);
+      return;
+    }
+    
+    // Proceed with copying since we have email
+    await executeCopyWorkflow(template, userEmail);
+  };
+  
+  const executeCopyWorkflow = async (template, email) => {
     try {
       // Validate that we have workflow data
       if (!template.workflow_data_json) {
@@ -158,7 +180,7 @@ const TemplatesPage = () => {
       try {
         await trackTemplateDownload(
           template.id, 
-          'anonymous', // No email required for direct copy
+          email,
           null,
           'free'
         );
@@ -175,6 +197,20 @@ const TemplatesPage = () => {
   };
 
   const importToN8n = async (template) => {
+    // Check if we already have user email
+    if (!userEmail) {
+      // Need to collect email first
+      setSelectedTemplate(template);
+      setPendingAction('import');
+      setShowEmailModal(true);
+      return;
+    }
+    
+    // Proceed with import since we have email
+    await executeImportToN8n(template, userEmail);
+  };
+  
+  const executeImportToN8n = async (template, email) => {
     try {
       // Validate that we have workflow data
       if (!template.workflow_data_json) {
@@ -211,7 +247,7 @@ const TemplatesPage = () => {
       try {
         await trackTemplateDownload(
           template.id, 
-          'anonymous', // No email required for direct import
+          email,
           null,
           'import'
         );
@@ -222,6 +258,84 @@ const TemplatesPage = () => {
     } catch (err) {
       console.error('Failed to import:', err);
       setCopySuccess('Failed to import workflow. Please try again.');
+      setTimeout(() => setCopySuccess(''), 3000);
+    }
+  };
+
+  const downloadWorkflow = async (template) => {
+    // Check if we already have user email
+    if (!userEmail) {
+      // Need to collect email first
+      setSelectedTemplate(template);
+      setPendingAction('download');
+      setShowEmailModal(true);
+      return;
+    }
+    
+    // Proceed with download since we have email
+    await executeDownloadWorkflow(template, userEmail);
+  };
+  
+  const executeDownloadWorkflow = async (template, email) => {
+    try {
+      // Validate that we have workflow data
+      if (!template.workflow_data_json) {
+        setCopySuccess('Error: No workflow data available');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+
+      let workflowJson;
+      try {
+        // Handle both string and object formats
+        if (typeof template.workflow_data_json === 'string') {
+          const parsed = JSON.parse(template.workflow_data_json);
+          workflowJson = JSON.stringify(parsed, null, 2);
+        } else if (typeof template.workflow_data_json === 'object') {
+          workflowJson = JSON.stringify(template.workflow_data_json, null, 2);
+        } else {
+          throw new Error('Invalid workflow data format');
+        }
+      } catch (parseError) {
+        console.error('Error processing workflow data:', parseError);
+        setCopySuccess('Error: Invalid workflow data format');
+        setTimeout(() => setCopySuccess(''), 3000);
+        return;
+      }
+
+      // Create and download the JSON file
+      const blob = new Blob([workflowJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename from template title
+      const filename = `${template.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      link.download = filename;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setCopySuccess(`Downloaded ${template.title} workflow as ${filename}`);
+      
+      // Track the download
+      try {
+        await trackTemplateDownload(
+          template.id, 
+          email,
+          null,
+          'download'
+        );
+      } catch (err) {
+        console.error('Error tracking download:', err);
+      }
+      
+      setTimeout(() => setCopySuccess(''), 3000);
+    } catch (err) {
+      console.error('Failed to download:', err);
+      setCopySuccess('Failed to download workflow. Please try again.');
       setTimeout(() => setCopySuccess(''), 3000);
     }
   };
@@ -243,11 +357,61 @@ const TemplatesPage = () => {
     if (template.tutorial_link.startsWith('http')) {
       window.open(template.tutorial_link, '_blank');
     } else {
-      // Internal link - navigate to blog post
+      // Internal link - navigate to blog post and scroll to top
       // Remove leading slash if present
       const link = template.tutorial_link.startsWith('/') ? template.tutorial_link.slice(1) : template.tutorial_link;
-      navigate(`/${link}`);
+      
+      // Scroll to top before navigation
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Small delay to ensure scroll happens before navigation
+      setTimeout(() => {
+        navigate(`/${link}`);
+      }, 100);
     }
+  };
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedTemplate || !pendingAction) {
+      setCopySuccess('Error: No template or action selected');
+      setTimeout(() => setCopySuccess(''), 3000);
+      return;
+    }
+    
+    // Store the email for future use
+    setUserEmail(email);
+    
+    // Close the modal first
+    setShowEmailModal(false);
+    
+    // Execute the pending action
+    try {
+      if (pendingAction === 'copy') {
+        await executeCopyWorkflow(selectedTemplate, email);
+      } else if (pendingAction === 'import') {
+        await executeImportToN8n(selectedTemplate, email);
+      } else if (pendingAction === 'download') {
+        await executeDownloadWorkflow(selectedTemplate, email);
+      }
+    } catch (err) {
+      console.error('Error executing action:', err);
+      setCopySuccess('Error: Failed to complete action');
+      setTimeout(() => setCopySuccess(''), 3000);
+    }
+    
+    // Reset modal state
+    setEmail('');
+    setPendingAction(null);
+    setSelectedTemplate(null);
+  };
+
+  const handleEmailModalClose = () => {
+    setShowEmailModal(false);
+    setEmail('');
+    setPendingAction(null);
+    setSelectedTemplate(null);
   };
 
   return (
@@ -460,10 +624,13 @@ const TemplatesPage = () => {
                           €{template.price}
                         </div>
                       ) : (
-                        <div className="flex items-center bg-green-900 text-green-400 px-3 py-2 rounded-lg text-sm font-medium border border-green-400">
+                        <button
+                          onClick={() => downloadWorkflow(template)}
+                          className="flex items-center bg-green-900 hover:bg-green-800 text-green-400 hover:text-green-300 px-3 py-2 rounded-lg text-sm font-medium border border-green-400 transition-colors duration-200 cursor-pointer"
+                        >
                           <Download className="w-4 h-4 mr-1" />
                           Free Download
-                        </div>
+                        </button>
                       )}
                       {template.tutorial_link && (
                         <button
@@ -511,6 +678,64 @@ const TemplatesPage = () => {
           </div>
         </section>
       </div>
+
+      {/* Email Collection Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="card max-w-md w-full relative">
+            <button
+              onClick={handleEmailModalClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-primary-light"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="text-center mb-6">
+              <div className="bg-primary-dark rounded-full p-3 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-8 h-8 text-accent-gold" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {pendingAction === 'copy' ? 'Copy Workflow JSON' : 
+                 pendingAction === 'import' ? 'Import to n8n' : 
+                 'Download Workflow'}
+              </h3>
+              <p className="text-gray-400">
+                Enter your email to access the {selectedTemplate?.title} template
+              </p>
+            </div>
+            
+            <form onSubmit={handleEmailSubmit}>
+              <div className="mb-6">
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  className="form-input w-full"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  We'll send you updates and new templates
+                </p>
+              </div>
+              
+              <button
+                type="submit"
+                className="btn-primary w-full"
+              >
+                {pendingAction === 'copy' ? 'Copy to Clipboard' : 
+                 pendingAction === 'import' ? 'Open n8n Import' : 
+                 'Download JSON File'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -26,6 +27,9 @@ const BlogPost = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Scroll to top when blog post loads
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     const fetchPost = async () => {
       try {
         setLoading(true);
@@ -170,38 +174,53 @@ const BlogPost = () => {
       
       <div className="min-h-screen pt-16">
         {/* Article Header */}
-        <section className="section-padding bg-gradient-to-b from-primary-dark to-black">
-          <div className="max-w-4xl mx-auto container-padding">
+        <section className="section-padding bg-gradient-to-b from-primary-dark via-black to-black">
+          <div className="max-w-5xl mx-auto container-padding">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Link to="/blog" className="inline-flex items-center text-accent-gold hover:text-accent-gold/80 mb-6">
+              <Link to="/blog" className="inline-flex items-center text-accent-gold hover:text-accent-gold/80 mb-8 transition-colors">
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back to Blog
               </Link>
               
               {/* Article Meta */}
-              <div className="flex flex-wrap items-center text-sm text-gray-400 mb-6">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span className="mr-6">{new Date(post.publicationDate).toLocaleDateString()}</span>
-                <Clock className="w-4 h-4 mr-1" />
-                <span className="mr-6">{post.readTime} min read</span>
-                <span>By {post.author}</span>
+              <div className="flex flex-wrap items-center text-sm text-gray-400 mb-8 space-x-6">
+                <div className="flex items-center bg-primary-gray/50 px-3 py-1 rounded-full">
+                  <Calendar className="w-4 h-4 mr-2 text-accent-gold" />
+                  <span>{new Date(post.publicationDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                </div>
+                <div className="flex items-center bg-primary-gray/50 px-3 py-1 rounded-full">
+                  <Clock className="w-4 h-4 mr-2 text-accent-gold" />
+                  <span>{post.readTime} min read</span>
+                </div>
+                <div className="flex items-center bg-primary-gray/50 px-3 py-1 rounded-full">
+                  <span>By {post.author}</span>
+                </div>
               </div>
 
               {/* Article Title */}
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight bg-gradient-to-r from-white via-gray-100 to-accent-gold bg-clip-text text-transparent">
                 {post.title}
               </h1>
 
+              {/* Excerpt */}
+              <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed max-w-4xl">
+                {post.excerpt}
+              </p>
+
               {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-8">
+              <div className="flex flex-wrap gap-3 mb-8">
                 {post.tags.map(tag => (
                   <span 
                     key={tag}
-                    className="bg-primary-gray px-3 py-1 rounded-full text-sm text-accent-gold border border-accent-gold/30"
+                    className="bg-gradient-to-r from-accent-gold/20 to-yellow-500/20 border border-accent-gold/30 px-4 py-2 rounded-full text-sm text-accent-gold font-medium hover:from-accent-gold/30 hover:to-yellow-500/30 transition-all duration-300"
                   >
                     #{tag}
                   </span>
@@ -209,11 +228,13 @@ const BlogPost = () => {
               </div>
 
               {/* Share Button */}
-              <div className="flex items-center justify-between border-b border-gray-800 pb-8 mb-8">
-                <p className="text-gray-300 text-lg">{post.excerpt}</p>
+              <div className="flex items-center justify-between border-t border-gray-800 pt-8">
+                <div className="text-gray-400">
+                  <span className="text-sm">Share this article</span>
+                </div>
                 <button 
                   onClick={handleShare}
-                  className="btn-secondary ml-4 flex-shrink-0"
+                  className="btn-secondary hover:scale-105 transition-transform duration-300"
                 >
                   <Share2 className="w-5 h-5 mr-2" />
                   Share
@@ -224,7 +245,7 @@ const BlogPost = () => {
         </section>
 
         {/* Article Content */}
-        <section className="pb-16">
+        <section className="py-16 bg-gradient-to-b from-black to-primary-dark/20">
           <div className="max-w-4xl mx-auto container-padding">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -232,53 +253,62 @@ const BlogPost = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="prose prose-lg prose-invert max-w-none"
             >
-              <div className="article-content text-gray-300 leading-relaxed">
+              <div className="article-content text-gray-300 leading-relaxed bg-black/30 rounded-3xl p-8 md:p-12 backdrop-blur-sm border border-gray-800/50">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h1: ({children}) => (
-                      <h1 className="text-3xl font-bold text-primary-light mb-6 mt-12 first:mt-0">
+                      <h1 className="text-3xl md:text-4xl font-bold text-white mb-8 mt-12 first:mt-0 pb-4 border-b border-accent-gold/30">
                         {children}
                       </h1>
                     ),
                     h2: ({children}) => (
-                      <h2 className="text-2xl font-bold text-primary-light mb-4 mt-10">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 mt-10 flex items-center">
+                        <span className="w-2 h-8 bg-accent-gold rounded mr-4"></span>
                         {children}
                       </h2>
                     ),
                     h3: ({children}) => (
-                      <h3 className="text-xl font-bold text-primary-light mb-3 mt-8">
+                      <h3 className="text-xl md:text-2xl font-bold text-white mb-4 mt-8">
                         {children}
                       </h3>
                     ),
                     p: ({children}) => (
-                      <p className="mb-6 text-gray-300 leading-relaxed">
+                      <p className="mb-6 text-gray-300 leading-relaxed text-lg">
                         {children}
                       </p>
                     ),
                     code: ({children, className}) => {
                       const match = /language-(\w+)/.exec(className || '');
                       return match ? (
-                        <pre className="bg-primary-gray p-4 rounded-lg overflow-x-auto mb-6">
-                          <code className={className}>{children}</code>
-                        </pre>
+                        <div className="relative my-8">
+                          <div className="absolute top-0 left-0 bg-accent-gold text-primary-dark px-3 py-1 text-xs font-bold rounded-tl-lg rounded-br-lg">
+                            {match[1]}
+                          </div>
+                          <pre className="bg-primary-gray border border-gray-700 p-6 pt-10 rounded-lg overflow-x-auto">
+                            <code className={className}>{children}</code>
+                          </pre>
+                        </div>
                       ) : (
-                        <code className="bg-primary-gray px-2 py-1 rounded text-sm">{children}</code>
+                        <code className="bg-primary-gray border border-gray-700 px-2 py-1 rounded text-sm text-accent-gold">{children}</code>
                       );
                     },
                     ul: ({children}) => (
-                      <ul className="mb-6 space-y-2">{children}</ul>
+                      <ul className="mb-8 space-y-3 pl-6">{children}</ul>
                     ),
                     ol: ({children}) => (
-                      <ol className="mb-6 space-y-2 list-decimal list-inside">{children}</ol>
+                      <ol className="mb-8 space-y-3 list-decimal list-inside pl-6">{children}</ol>
                     ),
                     li: ({children}) => (
-                      <li className="text-gray-300 pl-2">{children}</li>
+                      <li className="text-gray-300 pl-2 relative">
+                        <span className="absolute -left-6 top-3 w-2 h-2 bg-accent-gold rounded-full"></span>
+                        {children}
+                      </li>
                     ),
                     a: ({children, href}) => (
                       <a 
                         href={href} 
-                        className="text-accent-gold hover:text-accent-gold/80 underline"
+                        className="text-accent-gold hover:text-yellow-400 underline decoration-accent-gold/50 hover:decoration-yellow-400 transition-colors duration-300"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -286,17 +316,22 @@ const BlogPost = () => {
                       </a>
                     ),
                     blockquote: ({children}) => (
-                      <blockquote className="border-l-4 border-accent-gold pl-4 py-2 my-6 text-gray-400">
+                      <blockquote className="border-l-4 border-accent-gold bg-accent-gold/5 pl-6 py-4 my-8 text-gray-300 rounded-r-lg italic">
                         {children}
                       </blockquote>
                     ),
                     img: ({src, alt}) => (
-                      <img 
-                        src={src} 
-                        alt={alt} 
-                        className="rounded-lg my-6 w-full h-auto"
-                        loading="lazy"
-                      />
+                      <div className="my-8">
+                        <img 
+                          src={src} 
+                          alt={alt} 
+                          className="rounded-xl w-full h-auto shadow-2xl border border-gray-700"
+                          loading="lazy"
+                        />
+                        {alt && (
+                          <p className="text-center text-gray-400 text-sm mt-3 italic">{alt}</p>
+                        )}
+                      </div>
                     )
                   }}
                 >
