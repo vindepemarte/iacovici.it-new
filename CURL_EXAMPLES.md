@@ -1,5 +1,26 @@
 # Iacovici.it API - Complete cURL Examples
 
+## 🔧 Database Schema Updates
+
+**IMPORTANT**: If you encounter errors about missing `seo_title` or `seo_description` columns when creating templates, this means your database schema needs to be updated. The backend now automatically handles this migration.
+
+### Quick Fix for Missing Columns:
+
+```bash
+# Option 1: Restart the backend service (recommended)
+./restart-backend.sh
+
+# Option 2: Manual restart
+docker-compose restart backend
+
+# Option 3: Check backend logs to see migration status
+docker-compose logs backend
+```
+
+The backend will automatically detect missing columns and add them during startup.
+
+---
+
 Replace `YOUR_API_KEY` with your actual API key and `YOUR_DOMAIN` with your domain.
 
 ## Authentication

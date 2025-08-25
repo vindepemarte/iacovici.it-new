@@ -10,6 +10,63 @@ const pool = new Pool({
   port: parseInt(process.env.POSTGRES_PORT) || 5432,
 });
 
+// Migration function to handle database schema updates
+async function runMigrations() {
+  console.log('🔄 Running database migrations...');
+  
+  try {
+    // Check if templates table has seo_title and seo_description columns
+    const columnCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'templates' 
+      AND table_schema = 'public' 
+      AND column_name IN ('seo_title', 'seo_description')
+    `);
+    
+    const existingColumns = columnCheck.rows.map(row => row.column_name);
+    const hasSeotitle = existingColumns.includes('seo_title');
+    const hasSeoDescription = existingColumns.includes('seo_description');
+    
+    if (!hasSeotitle || !hasSeoDescription) {
+      console.log('🔄 Adding missing SEO columns to templates table...');
+      
+      if (!hasSeotitle) {
+        await pool.query('ALTER TABLE templates ADD COLUMN IF NOT EXISTS seo_title VARCHAR(255)');
+        console.log('✅ Added seo_title column');
+      }
+      
+      if (!hasSeoDescription) {
+        await pool.query('ALTER TABLE templates ADD COLUMN IF NOT EXISTS seo_description TEXT');
+        console.log('✅ Added seo_description column');
+      }
+      
+      // Update existing templates with default SEO values
+      await pool.query(`
+        UPDATE templates 
+        SET 
+          seo_title = COALESCE(NULLIF(seo_title, ''), title || ' - n8n Workflow Template'),
+          seo_description = COALESCE(NULLIF(seo_description, ''), 
+            CASE 
+              WHEN LENGTH(description) > 160 
+              THEN LEFT(description, 157) || '...'
+              ELSE description
+            END
+          )
+        WHERE seo_title IS NULL OR seo_description IS NULL OR seo_title = '' OR seo_description = ''
+      `);
+      
+      console.log('✅ SEO columns migration completed');
+    } else {
+      console.log('✅ All required columns exist, no migration needed');
+    }
+    
+  } catch (error) {
+    console.error('❌ Migration failed:', error);
+    // Don't throw here, as the app should still start even if migration fails
+  }
+}
+
 async function initializeDatabase() {
   console.log('🔄 Checking database initialization...');
   
@@ -41,6 +98,8 @@ async function initializeDatabase() {
             icon_name VARCHAR(100) DEFAULT 'workflow',
             download_count INTEGER DEFAULT 0,
             rating DECIMAL(3,2) DEFAULT 0.00,
+            seo_title VARCHAR(255),
+            seo_description TEXT,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
@@ -176,6 +235,9 @@ async function initializeDatabase() {
       console.log('✅ Database initialized successfully!');
     } else {
       console.log('✅ Database already initialized.');
+      
+      // Check and add missing columns for existing databases
+      await runMigrations();
       
       // Check if site_settings has data
       const settingsCount = await pool.query('SELECT COUNT(*) FROM site_settings');

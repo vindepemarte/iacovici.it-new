@@ -128,6 +128,15 @@ router.post('/templates', async (req, res) => {
     if (err.message.includes('Missing required fields') || err.message.includes('Invalid JSON')) {
       return res.status(400).json({ error: err.message });
     }
+    
+    // Handle specific database errors
+    if (err.code === '42703') {
+      return res.status(500).json({ 
+        error: 'Database schema outdated. The backend will automatically add missing columns on next restart.',
+        details: 'Please restart the backend service to apply schema migrations.'
+      });
+    }
+    
     res.status(500).json({ error: 'Failed to create template' });
   }
 });
