@@ -28,6 +28,36 @@ const TemplatesPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Fallback copy function for browsers that don't support clipboard API
+  const copyToClipboardFallback = (text, templateTitle) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        setCopySuccess(`Copied ${templateTitle} workflow to clipboard!`);
+      } else {
+        setCopySuccess('Please manually copy the workflow from the modal.');
+        // Show the workflow in a modal or alert
+        alert(`Workflow JSON:\n\n${text}`);
+      }
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+      setCopySuccess('Copy failed. Please manually select and copy the workflow.');
+      // Show the workflow in a modal or alert
+      alert(`Workflow JSON:\n\n${text}`);
+    }
+  };
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [email, setEmail] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -126,37 +156,49 @@ const TemplatesPage = () => {
       return;
     }
     
-    try {
-      // Track the download in the backend
-      await trackTemplateDownload(
-        selectedTemplate.id, 
-        email, 
-        null, // IP address will be determined by backend
-        pendingAction === 'copy' ? 'free' : 'import'
-      );
+    // Execute the pending action FIRST (while user gesture is still active)
+    let actionSuccess = false;
+    
+    if (pendingAction === 'copy') {
+      // Copy the workflow immediately to preserve user gesture
+      const workflowJson = JSON.stringify(selectedTemplate.workflow_data_json, null, 2);
       
-      // Execute the pending action
-      if (pendingAction === 'copy') {
-        // Actually copy the workflow
-        const workflowJson = JSON.stringify(selectedTemplate.workflow_data_json, null, 2);
-        navigator.clipboard.writeText(workflowJson)
-          .then(() => {
-            setCopySuccess(`Copied ${selectedTemplate.title} workflow to clipboard!`);
-          })
-          .catch(err => {
-            console.error('Failed to copy:', err);
-            setCopySuccess('Failed to copy workflow. Please try again.');
-          });
-      } else if (pendingAction === 'import') {
-        // Actually import to n8n
-        const workflowData = encodeURIComponent(JSON.stringify(selectedTemplate.workflow_data_json));
-        const importUrl = `https://n8n.io/import?data=${workflowData}`;
-        window.open(importUrl, '_blank');
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(workflowJson);
+          setCopySuccess(`Copied ${selectedTemplate.title} workflow to clipboard!`);
+          actionSuccess = true;
+        } else {
+          // Use fallback method
+          copyToClipboardFallback(workflowJson, selectedTemplate.title);
+          actionSuccess = true;
+        }
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        setCopySuccess('Failed to copy workflow. Please try the download button instead.');
+        actionSuccess = false;
       }
-    } catch (err) {
-      console.error('Error tracking download:', err);
-      setCopySuccess('Error tracking download. Please try again.');
-      setTimeout(() => setCopySuccess(''), 3000);
+    } else if (pendingAction === 'import') {
+      // Import to n8n
+      const workflowData = encodeURIComponent(JSON.stringify(selectedTemplate.workflow_data_json));
+      const importUrl = `https://n8n.io/import?data=${workflowData}`;
+      window.open(importUrl, '_blank');
+      actionSuccess = true;
+    }
+    
+    // Track the download in the background (after the action)
+    if (actionSuccess) {
+      try {
+        await trackTemplateDownload(
+          selectedTemplate.id, 
+          email, 
+          null, // IP address will be determined by backend
+          pendingAction === 'copy' ? 'free' : 'import'
+        );
+      } catch (err) {
+        console.error('Error tracking download:', err);
+        // Don't show error to user since the main action succeeded
+      }
     }
     
     // Close the modal and reset state

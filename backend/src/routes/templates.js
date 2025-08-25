@@ -83,6 +83,21 @@ const initializeTables = async () => {
       )
     `);
 
+    // Check if admin user exists, if not create it
+    const existingUsers = await query('SELECT COUNT(*) FROM users');
+    if (parseInt(existingUsers.rows[0].count) === 0) {
+      await query(`
+        INSERT INTO users (email, password_hash, name, role) VALUES 
+        (
+          'admin@iacovici.it',
+          '$2a$10$42uwZyATRNtHZOJglb/IX./2Gx8ShCVRDCJcP6MTeaUSUs66DJ0vi',
+          'Administrator',
+          'admin'
+        )
+      `);
+      console.log('✅ Admin user created (admin@iacovici.it / admin123)');
+    }
+
     // Check if templates exist, if not insert sample data
     const existingTemplates = await query('SELECT COUNT(*) FROM templates');
     if (parseInt(existingTemplates.rows[0].count) === 0) {
@@ -125,7 +140,7 @@ router.get('/', async (req, res) => {
   try {
     // Initialize tables on first request if needed
     await initializeTables();
-    
+
     const result = await query(
       'SELECT id, title, description, category, is_pro, price, tutorial_link, icon_name, download_count, rating, created_at FROM templates ORDER BY created_at DESC'
     );
@@ -144,11 +159,11 @@ router.get('/:id', async (req, res) => {
       'SELECT id, title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, download_count, rating, created_at FROM templates WHERE id = $1',
       [id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Template not found' });
     }
-    
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -160,51 +175,51 @@ router.get('/:id', async (req, res) => {
 router.post('/download', async (req, res) => {
   try {
     const { templateId, email, ipAddress, downloadType } = req.body;
-    
+
     // Validate required fields
     if (!templateId || !email) {
       return res.status(400).json({ error: 'Template ID and email are required' });
     }
-    
+
     // Initialize tables first
     await initializeTables();
-    
+
     // Get template information
     const templateResult = await query(
       'SELECT title, price FROM templates WHERE id = $1',
       [templateId]
     );
-    
+
     if (templateResult.rows.length === 0) {
       return res.status(404).json({ error: 'Template not found' });
     }
-    
+
     const template = templateResult.rows[0];
-    
+
     // Insert download record
     await query(
       'INSERT INTO template_downloads (template_id, email, ip_address, download_type) VALUES ($1, $2, $3, $4)',
       [templateId, email, ipAddress, downloadType]
     );
-    
+
     // Update download count
     await query(
       'UPDATE templates SET download_count = download_count + 1 WHERE id = $1',
       [templateId]
     );
-    
+
     // Send email notification
     const emailResult = await sendTemplateDownloadNotification(
-      email, 
-      template.title, 
+      email,
+      template.title,
       downloadType
     );
-    
+
     if (!emailResult.success) {
       console.error('Failed to send email notification:', emailResult.error);
     }
-    
-    res.json({ 
+
+    res.json({
       message: 'Download tracked successfully',
       emailSent: emailResult.success
     });

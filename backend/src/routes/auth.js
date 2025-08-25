@@ -4,6 +4,33 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { query } = require('../config/database');
 
+// Initialize admin user (for setup)
+router.post('/init-admin', async (req, res) => {
+  try {
+    // Check if any users exist
+    const existingUsers = await query('SELECT COUNT(*) FROM users');
+    if (parseInt(existingUsers.rows[0].count) > 0) {
+      return res.status(400).json({ error: 'Admin user already exists' });
+    }
+    
+    // Create admin user
+    await query(`
+      INSERT INTO users (email, password_hash, name, role) VALUES 
+      (
+        'admin@iacovici.it',
+        '$2a$10$42uwZyATRNtHZOJglb/IX./2Gx8ShCVRDCJcP6MTeaUSUs66DJ0vi',
+        'Administrator',
+        'admin'
+      )
+    `);
+    
+    res.json({ message: 'Admin user created successfully (admin@iacovici.it / admin123)' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {

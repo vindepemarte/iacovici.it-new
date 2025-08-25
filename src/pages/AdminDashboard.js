@@ -254,6 +254,7 @@ const AdminDashboard = () => {
                 <th className="text-left py-3">Template</th>
                 <th className="text-left py-3">Category</th>
                 <th className="text-left py-3">Type</th>
+                <th className="text-left py-3">Tutorial Link</th>
                 <th className="text-left py-3">Downloads</th>
                 <th className="text-left py-3">Rating</th>
                 <th className="text-left py-3">Actions</th>
@@ -265,6 +266,19 @@ const AdminDashboard = () => {
                   <td className="py-3">{template.title}</td>
                   <td className="py-3">{template.category}</td>
                   <td className="py-3">{template.is_pro ? 'Pro' : 'Free'}</td>
+                  <td className="py-3">
+                    {template.tutorial_link ? (
+                      <Link 
+                        to={template.tutorial_link} 
+                        className="text-accent-gold hover:text-accent-gold/80 text-sm"
+                        target="_blank"
+                      >
+                        View Tutorial
+                      </Link>
+                    ) : (
+                      <span className="text-gray-500 text-sm">No tutorial</span>
+                    )}
+                  </td>
                   <td className="py-3">{template.download_count}</td>
                   <td className="py-3">{template.rating}</td>
                   <td className="py-3">
