@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS templates (
     icon_name VARCHAR(100) DEFAULT 'workflow',
     download_count INTEGER DEFAULT 0,
     rating DECIMAL(3,2) DEFAULT 0.00,
+    seo_title VARCHAR(255),
+    seo_description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
