@@ -5,6 +5,8 @@ const { Pool } = require('pg');
 
 // Create a new pool instance with retry logic
 const pool = new Pool({
+  // Use DATABASE_URL if available (Coolify pattern), otherwise individual env vars
+  connectionString: process.env.DATABASE_URL,
   user: process.env.POSTGRES_USER || 'iacovici_user',
   host: process.env.POSTGRES_HOST || 'localhost',
   database: process.env.POSTGRES_DB || 'iacovici_db',
@@ -13,7 +15,7 @@ const pool = new Pool({
   // Connection pool settings
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000, // Increased timeout
+  connectionTimeoutMillis: 10000,
   // Retry settings
   statement_timeout: 30000,
   query_timeout: 30000,

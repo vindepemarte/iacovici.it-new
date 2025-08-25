@@ -1,89 +1,75 @@
-version: '3.8'
-
 services:
   web:
     build: .
-    # Removed ports directive - Coolify handles port forwarding automatically
     environment:
-      # Frontend API URL - use backend domain for external calls
-      REACT_APP_API_URL: https://backend.iacovici.it/api
-      # Site URL (this will be the public URL of the frontend service)
-      REACT_APP_SITE_URL: ${REACT_APP_SITE_URL}
-      # Stripe configuration
-      REACT_APP_STRIPE_PUBLISHABLE_KEY: ${REACT_APP_STRIPE_PUBLISHABLE_KEY}
-      # Optional: Analytics
-      REACT_APP_GOOGLE_ANALYTICS_ID: ${REACT_APP_GOOGLE_ANALYTICS_ID}
-      # Optional: Social Media Links
-      REACT_APP_SOCIAL_TELEGRAM: ${REACT_APP_SOCIAL_TELEGRAM}
-      REACT_APP_SOCIAL_GITHUB: ${REACT_APP_SOCIAL_GITHUB}
-      REACT_APP_SOCIAL_LINKEDIN: ${REACT_APP_SOCIAL_LINKEDIN}
+      - SERVICE_FQDN_WEB_80
+      - 'REACT_APP_API_URL=${SERVICE_FQDN_BACKEND}/api'
+      - 'REACT_APP_SITE_URL=${SERVICE_FQDN_WEB}'
+      - 'REACT_APP_STRIPE_PUBLISHABLE_KEY=${REACT_APP_STRIPE_PUBLISHABLE_KEY}'
+      - 'REACT_APP_GOOGLE_ANALYTICS_ID=${REACT_APP_GOOGLE_ANALYTICS_ID}'
+      - 'REACT_APP_SOCIAL_TELEGRAM=${REACT_APP_SOCIAL_TELEGRAM}'
+      - 'REACT_APP_SOCIAL_GITHUB=${REACT_APP_SOCIAL_GITHUB}'
+      - 'REACT_APP_SOCIAL_LINKEDIN=${REACT_APP_SOCIAL_LINKEDIN}'
     depends_on:
-      - db
-    networks:
-      - iacovici-network
-    restart: unless-stopped
-
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Use md5 authentication which is more compatible
-      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
-    # Removed ports directive - Coolify handles port forwarding automatically
-    volumes:
-      - postgres_data_final:/var/lib/postgresql/data
-      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-    networks:
-      - iacovici-network
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test:
+        - CMD-SHELL
+        - 'wget -qO- http://127.0.0.1:80/health || exit 1'
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+      timeout: 20s
+      retries: 10
 
   backend:
     build: ./backend
-    # Removed ports directive - Coolify handles port forwarding automatically
     environment:
-      # Database configuration
-      POSTGRES_HOST: db
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      # JWT configuration
-      JWT_SECRET: ${JWT_SECRET}
-      # Backend port
-      BACKEND_PORT: 3001
-      # Frontend URL for redirects (Stripe success/cancel URLs)
-      FRONTEND_URL: ${FRONTEND_URL}
-      # Stripe configuration
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-      # Email configuration
-      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_SECURE: ${SMTP_SECURE}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      # Optional: Analytics
-      GOOGLE_ANALYTICS_ID: ${GOOGLE_ANALYTICS_ID}
+      - SERVICE_FQDN_BACKEND_3001
+      - 'DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}'
+      - 'POSTGRES_HOST=postgres'
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'POSTGRES_PORT=5432'
+      - 'JWT_SECRET=${JWT_SECRET}'
+      - 'BACKEND_PORT=3001'
+      - 'FRONTEND_URL=${SERVICE_FQDN_WEB}'
+      - 'STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}'
+      - 'STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}'
+      - 'EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS}'
+      - 'SMTP_HOST=${SMTP_HOST}'
+      - 'SMTP_PORT=${SMTP_PORT}'
+      - 'SMTP_SECURE=${SMTP_SECURE}'
+      - 'SMTP_USER=${SMTP_USER}'
+      - 'SMTP_PASS=${SMTP_PASS}'
+      - 'GOOGLE_ANALYTICS_ID=${GOOGLE_ANALYTICS_ID}'
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    networks:
-      - iacovici-network
-    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget -qO- http://127.0.0.1:3001/api/health || exit 1'
+      interval: 10s
+      timeout: 20s
+      retries: 10
+
+  postgres:
+    image: 'postgres:15-alpine'
+    environment:
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+    volumes:
+      - 'iacovici_postgresql_data:/var/lib/postgresql/data'
+      - './schema.sql:/docker-entrypoint-initdb.d/01-schema.sql'
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'
+      interval: 5s
+      timeout: 20s
+      retries: 10
 
 volumes:
-  postgres_data_final:
-    driver: local
-
-networks:
-  iacovici-network:
-    driver: bridge
+  iacovici_postgresql_data:
