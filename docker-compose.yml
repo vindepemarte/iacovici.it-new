@@ -61,7 +61,7 @@ services:
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
       - 'POSTGRES_DB=${POSTGRES_DB}'
     volumes:
-      - 'iacovici_postgresql_data:/var/lib/postgresql/data'
+      - 'iacovici_postgresql_data_v2:/var/lib/postgresql/data'
       - './schema.sql:/docker-entrypoint-initdb.d/01-schema.sql'
     healthcheck:
       test:
@@ -72,4 +72,4 @@ services:
       retries: 10
 
 volumes:
-  iacovici_postgresql_data:
+  iacovici_postgresql_data_v2:
