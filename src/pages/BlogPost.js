@@ -13,33 +13,66 @@ import {
   BookOpen, 
   CheckCircle,
   ExternalLink,
-  Download
+  Download,
+  Loader
 } from 'lucide-react';
-import { blogPosts } from '../data/blogData';
+import { getBlogPostBySlug, getBlogPosts } from '../utils/api';
 
 const BlogPost = () => {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [relatedPosts, setRelatedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchPost = async () => {
-      setLoading(true);
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const foundPost = blogPosts.find(p => p.slug === slug);
-      if (foundPost) {
-        setPost(foundPost);
-        // Get related posts (posts with similar tags)
-        const related = blogPosts
-          .filter(p => p.id !== foundPost.id && 
-                      p.tags.some(tag => foundPost.tags.includes(tag)))
-          .slice(0, 3);
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch the specific blog post
+        const fetchedPost = await getBlogPostBySlug(slug);
+        
+        // Transform the data to match the expected format
+        const transformedPost = {
+          id: fetchedPost.id,
+          title: fetchedPost.title,
+          slug: fetchedPost.slug,
+          content: fetchedPost.content_markdown,
+          excerpt: fetchedPost.excerpt,
+          author: fetchedPost.author,
+          publicationDate: fetchedPost.publication_date,
+          featuredImage: fetchedPost.featured_image,
+          tags: fetchedPost.tags || [],
+          readTime: Math.ceil((fetchedPost.content_markdown?.length || 0) / 1000) || 5, // Estimate read time
+          seoTitle: fetchedPost.seo_title,
+          seoDescription: fetchedPost.seo_description
+        };
+        
+        setPost(transformedPost);
+        
+        // Fetch all posts to find related ones
+        const allPosts = await getBlogPosts();
+        const related = allPosts
+          .filter(p => p.id !== fetchedPost.id && 
+                      p.tags && transformedPost.tags.some(tag => p.tags.includes(tag)))
+          .slice(0, 3)
+          .map(p => ({
+            id: p.id,
+            title: p.title,
+            slug: p.slug,
+            excerpt: p.excerpt,
+            tags: p.tags || []
+          }));
+        
         setRelatedPosts(related);
+      } catch (err) {
+        console.error('Error fetching blog post:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchPost();
@@ -65,27 +98,55 @@ const BlogPost = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading article...</p>
+      <>
+        <Helmet>
+          <title>Loading Article - Iacovici.it</title>
+        </Helmet>
+        <div className="min-h-screen pt-16 flex items-center justify-center">
+          <div className="text-center">
+            <Loader className="w-12 h-12 text-accent-gold animate-spin mx-auto mb-4" />
+            <p className="text-gray-400">Loading article...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
-  if (!post) {
+  if (error || !post) {
     return (
-      <div className="min-h-screen pt-16">
-        <div className="max-w-4xl mx-auto container-padding text-center py-16">
-          <h1 className="text-3xl font-bold mb-4">Article Not Found</h1>
-          <p className="text-gray-400 mb-8">The article you're looking for doesn't exist or has been moved.</p>
-          <Link to="/blog" className="btn-primary">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Blog
-          </Link>
+      <>
+        <Helmet>
+          <title>Article Not Found - Iacovici.it</title>
+        </Helmet>
+        <div className="min-h-screen pt-16">
+          <div className="max-w-4xl mx-auto container-padding text-center py-16">
+            <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-6" />
+            <h1 className="text-3xl font-bold mb-4">
+              {error ? 'Error Loading Article' : 'Article Not Found'}
+            </h1>
+            <p className="text-gray-400 mb-8">
+              {error 
+                ? 'There was an error loading the article. Please try again later.' 
+                : "The article you're looking for doesn't exist or has been moved."
+              }
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/blog" className="btn-primary">
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Back to Blog
+              </Link>
+              {error && (
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="btn-secondary"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

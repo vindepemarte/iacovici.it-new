@@ -39,6 +39,9 @@ services:
       POSTGRES_PORT: 5432
       JWT_SECRET: your_jwt_secret_key_change_in_production
       BACKEND_PORT: 3001
+      STRIPE_SECRET_KEY: sk_test_placeholder_for_development
+      STRIPE_WEBHOOK_SECRET: whsec_placeholder_for_development
+      FRONTEND_URL: http://localhost:3000
     depends_on:
       - db
     networks:
