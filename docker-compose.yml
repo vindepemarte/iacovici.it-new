@@ -37,6 +37,12 @@ services:
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - iacovici-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   backend:
@@ -68,7 +74,8 @@ services:
       # Optional: Analytics
       GOOGLE_ANALYTICS_ID: ${GOOGLE_ANALYTICS_ID}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - iacovici-network
     restart: unless-stopped
