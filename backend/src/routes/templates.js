@@ -142,7 +142,7 @@ router.get('/', async (req, res) => {
     await initializeTables();
 
     const result = await query(
-      'SELECT id, title, description, category, is_pro, price, tutorial_link, icon_name, download_count, rating, created_at FROM templates ORDER BY created_at DESC'
+      'SELECT id, title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, download_count, rating, created_at FROM templates ORDER BY created_at DESC'
     );
     res.json(result.rows);
   } catch (err) {

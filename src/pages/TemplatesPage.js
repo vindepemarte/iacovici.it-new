@@ -123,10 +123,22 @@ const TemplatesPage = () => {
   const copyWorkflow = async (template) => {
     try {
       console.log('Template data:', template); // Debug log
+      console.log('workflow_data_json type:', typeof template.workflow_data_json);
+      console.log('workflow_data_json value:', template.workflow_data_json);
       
-      // Validate that we have workflow data
-      if (!template.workflow_data_json) {
-        console.error('No workflow_data_json found in template:', template);
+      // More robust validation for workflow data
+      const hasValidWorkflowData = template.workflow_data_json && 
+                                   template.workflow_data_json !== null && 
+                                   template.workflow_data_json !== '' &&
+                                   template.workflow_data_json !== 'null';
+      
+      if (!hasValidWorkflowData) {
+        console.error('No valid workflow_data_json found in template:', {
+          id: template.id,
+          title: template.title,
+          workflow_data_json: template.workflow_data_json,
+          type: typeof template.workflow_data_json
+        });
         
         // Create a fallback sample workflow for testing
         const sampleWorkflow = {
@@ -237,12 +249,18 @@ const TemplatesPage = () => {
   const importToN8n = async (template) => {
     try {
       console.log('Template data for import:', template); // Debug log
+      console.log('workflow_data_json for import:', template.workflow_data_json);
       
       let workflowData;
       
-      // Handle missing workflow data
-      if (!template.workflow_data_json) {
-        console.warn('No workflow_data_json found, using sample workflow');
+      // More robust validation for workflow data
+      const hasValidWorkflowData = template.workflow_data_json && 
+                                   template.workflow_data_json !== null && 
+                                   template.workflow_data_json !== '' &&
+                                   template.workflow_data_json !== 'null';
+      
+      if (!hasValidWorkflowData) {
+        console.warn('No valid workflow_data_json found, using sample workflow');
         
         // Create a fallback sample workflow for testing
         const sampleWorkflow = {
@@ -313,12 +331,18 @@ const TemplatesPage = () => {
   const downloadWorkflow = async (template) => {
     try {
       console.log('Template data for download:', template); // Debug log
+      console.log('workflow_data_json for download:', template.workflow_data_json);
       
       let workflowJson;
       
-      // Handle missing workflow data
-      if (!template.workflow_data_json) {
-        console.warn('No workflow_data_json found, using sample workflow');
+      // More robust validation for workflow data
+      const hasValidWorkflowData = template.workflow_data_json && 
+                                   template.workflow_data_json !== null && 
+                                   template.workflow_data_json !== '' &&
+                                   template.workflow_data_json !== 'null';
+      
+      if (!hasValidWorkflowData) {
+        console.warn('No valid workflow_data_json found, using sample workflow');
         
         // Create a fallback sample workflow for testing
         const sampleWorkflow = {
@@ -374,7 +398,7 @@ const TemplatesPage = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      setCopySuccess(`Downloaded ${template.title} workflow as ${filename}${!template.workflow_data_json ? ' (sample workflow)' : ''}`);
+      setCopySuccess(`Downloaded ${template.title} workflow as ${filename}${!hasValidWorkflowData ? ' (sample workflow)' : ''}`);
       
       // Track the download (optional)
       try {

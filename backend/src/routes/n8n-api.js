@@ -83,7 +83,9 @@ router.post('/templates', async (req, res) => {
       tutorial_link,
       icon_name,
       seo_title,
-      seo_description
+      seo_description,
+      rating,
+      download_count
     } = req.body;
     
     // Validate required fields
@@ -102,9 +104,29 @@ router.post('/templates', async (req, res) => {
       return res.status(400).json({ error: 'Tutorial link must be a valid URL' });
     }
     
+    // Validate rating if provided (should be between 0 and 5)
+    let validatedRating = 0.00;
+    if (rating !== undefined && rating !== null && rating !== '') {
+      const ratingFloat = parseFloat(rating);
+      if (isNaN(ratingFloat) || ratingFloat < 0 || ratingFloat > 5) {
+        return res.status(400).json({ error: 'Rating must be a number between 0 and 5' });
+      }
+      validatedRating = ratingFloat;
+    }
+    
+    // Validate download_count if provided (should be non-negative integer)
+    let validatedDownloadCount = 0;
+    if (download_count !== undefined && download_count !== null && download_count !== '') {
+      const downloadCountInt = parseInt(download_count);
+      if (isNaN(downloadCountInt) || downloadCountInt < 0) {
+        return res.status(400).json({ error: 'Download count must be a non-negative integer' });
+      }
+      validatedDownloadCount = downloadCountInt;
+    }
+    
     const result = await query(
-      `INSERT INTO templates (title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, seo_title, seo_description)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      `INSERT INTO templates (title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, seo_title, seo_description, rating, download_count)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
       [
         title.trim(), 
         description.trim(), 
@@ -115,7 +137,9 @@ router.post('/templates', async (req, res) => {
         tutorial_link?.trim() || null, 
         icon_name?.trim() || 'workflow',
         seo_title?.trim() || null,
-        seo_description?.trim() || null
+        seo_description?.trim() || null,
+        validatedRating,
+        validatedDownloadCount
       ]
     );
     
@@ -152,15 +176,73 @@ router.put('/templates/:id', async (req, res) => {
       price,
       workflow_data_json,
       tutorial_link,
-      icon_name
+      icon_name,
+      seo_title,
+      seo_description,
+      rating,
+      download_count
     } = req.body;
+    
+    // Validate required fields
+    validateRequired(['title', 'description'], req.body);
+    
+    // Validate and parse workflow JSON if provided
+    let workflowData = workflow_data_json;
+    if (workflow_data_json && typeof workflow_data_json === 'string') {
+      workflowData = validateJSON(workflow_data_json, 'workflow_data_json');
+    }
+    
+    // Validate price if pro template
+    if (is_pro && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0)) {
+      return res.status(400).json({ error: 'Pro templates must have a valid price greater than 0' });
+    }
+    
+    // Validate URL if tutorial link provided
+    if (tutorial_link && !tutorial_link.match(/^https?:\/\/.+/)) {
+      return res.status(400).json({ error: 'Tutorial link must be a valid URL' });
+    }
+    
+    // Validate rating if provided (should be between 0 and 5)
+    let validatedRating = rating;
+    if (rating !== undefined && rating !== null && rating !== '') {
+      const ratingFloat = parseFloat(rating);
+      if (isNaN(ratingFloat) || ratingFloat < 0 || ratingFloat > 5) {
+        return res.status(400).json({ error: 'Rating must be a number between 0 and 5' });
+      }
+      validatedRating = ratingFloat;
+    }
+    
+    // Validate download_count if provided (should be non-negative integer)
+    let validatedDownloadCount = download_count;
+    if (download_count !== undefined && download_count !== null && download_count !== '') {
+      const downloadCountInt = parseInt(download_count);
+      if (isNaN(downloadCountInt) || downloadCountInt < 0) {
+        return res.status(400).json({ error: 'Download count must be a non-negative integer' });
+      }
+      validatedDownloadCount = downloadCountInt;
+    }
     
     const result = await query(
       `UPDATE templates SET 
        title = $1, description = $2, category = $3, is_pro = $4, price = $5,
-       workflow_data_json = $6, tutorial_link = $7, icon_name = $8, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9 RETURNING *`,
-      [title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name, id]
+       workflow_data_json = $6, tutorial_link = $7, icon_name = $8, seo_title = $9, seo_description = $10,
+       rating = $11, download_count = $12, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $13 RETURNING *`,
+      [
+        title?.trim(), 
+        description?.trim(), 
+        category?.trim() || 'General', 
+        is_pro || false, 
+        is_pro ? parseFloat(price) || 0 : 0, 
+        workflowData, 
+        tutorial_link?.trim() || null, 
+        icon_name?.trim() || 'workflow',
+        seo_title?.trim() || null,
+        seo_description?.trim() || null,
+        validatedRating,
+        validatedDownloadCount,
+        id
+      ]
     );
     
     if (result.rows.length === 0) {

@@ -20,11 +20,11 @@
 /* Custom component styles */
 @layer components {
   .btn-primary {
-    @apply bg-primary-light text-primary-dark px-6 py-3 rounded-lg font-medium hover:bg-accent-gold hover:text-primary-dark transition-all duration-300 shadow-lg hover:shadow-xl;
+    @apply bg-primary-light text-primary-dark px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium hover:bg-accent-gold hover:text-primary-dark transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base whitespace-nowrap;
   }
   
   .btn-secondary {
-    @apply border-2 border-primary-light text-primary-light px-6 py-3 rounded-lg font-medium hover:bg-primary-light hover:text-primary-dark transition-all duration-300;
+    @apply border-2 border-primary-light text-primary-light px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium hover:bg-primary-light hover:text-primary-dark transition-all duration-300 text-sm sm:text-base whitespace-nowrap;
   }
   
   .card {
