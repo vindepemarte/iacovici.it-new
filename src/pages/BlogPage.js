@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  Calendar, 
-  Clock, 
-  BookOpen, 
+import {
+  Search,
+  Calendar,
+  Clock,
+  BookOpen,
   Filter,
   X,
   ArrowRight,
@@ -60,8 +60,8 @@ const BlogPage = () => {
   // Filter posts
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesTag = selectedTag === 'All' || post.tags.includes(selectedTag);
     return matchesSearch && matchesTag;
   });
@@ -98,8 +98,8 @@ const BlogPage = () => {
             <BookOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Unable to Load Blog Posts</h2>
             <p className="text-gray-400 mb-6">There was an error loading the blog posts. Please try again later.</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="btn-primary"
             >
               Try Again
@@ -127,7 +127,7 @@ const BlogPage = () => {
         <meta name="twitter:image" content="/logos/ia-logo-web.png" />
         <link rel="canonical" href="https://iacovici.it/blog" />
       </Helmet>
-      
+
       <div className="min-h-screen pt-16">
         {/* Header Section */}
         <section className="section-padding">
@@ -142,10 +142,10 @@ const BlogPage = () => {
                 <span className="gradient-text">Automation & AI Blog</span>
               </h1>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-                Tutorials, guides, and insights on n8n automation, AI integration, 
+                Tutorials, guides, and insights on n8n automation, AI integration,
                 and modern business solutions. Learn from real-world implementations.
               </p>
-              
+
               {/* Search Bar */}
               <div className="max-w-2xl mx-auto relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -176,16 +176,15 @@ const BlogPage = () => {
                 <button
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedTag === tag
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedTag === tag
                       ? 'bg-accent-gold text-primary-dark'
                       : 'bg-primary-gray text-gray-300 hover:bg-accent-gold/20 hover:text-accent-gold'
-                  }`}
+                    }`}
                 >
                   {tag}
                   {selectedTag === tag && (
-                    <X 
-                      className="w-4 h-4 inline-block ml-2 cursor-pointer" 
+                    <X
+                      className="w-4 h-4 inline-block ml-2 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedTag('All');
@@ -226,18 +225,18 @@ const BlogPage = () => {
                       <Clock className="w-4 h-4 mr-1" />
                       <span>{featuredPost.readTime} min read</span>
                     </div>
-                    
+
                     <h2 className="text-2xl md:text-3xl font-bold mb-4">
                       {featuredPost.title}
                     </h2>
-                    
+
                     <p className="text-gray-300 mb-6">
                       {featuredPost.excerpt}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-2 mb-6">
                       {featuredPost.tags.slice(0, 4).map(tag => (
-                        <span 
+                        <span
                           key={tag}
                           className="bg-primary-dark px-3 py-1 rounded-full text-sm text-accent-gold"
                         >
@@ -245,16 +244,16 @@ const BlogPage = () => {
                         </span>
                       ))}
                     </div>
-                    
-                    <Link 
-                      to={`/blog/${featuredPost.slug}`} 
+
+                    <Link
+                      to={`/blog/${featuredPost.slug}`}
                       className="btn-primary inline-flex items-center"
                     >
                       Read Full Article
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Link>
                   </div>
-                  
+
                   <div className="bg-primary-gray rounded-lg h-64 md:h-80 flex items-center justify-center">
                     <BookOpen className="w-16 h-16 text-accent-gold" />
                   </div>
@@ -297,7 +296,7 @@ const BlogPage = () => {
                         <div className="bg-primary-dark rounded-lg mb-4 h-48 flex items-center justify-center">
                           <BookOpen className="w-12 h-12 text-accent-gold" />
                         </div>
-                        
+
                         {/* Article Meta */}
                         <div className="flex items-center text-sm text-gray-400 mb-3">
                           <Calendar className="w-4 h-4 mr-1" />
@@ -319,7 +318,7 @@ const BlogPage = () => {
                         {/* Tags */}
                         <div className="flex flex-wrap gap-1 mb-4">
                           {post.tags.slice(0, 3).map(tag => (
-                            <span 
+                            <span
                               key={tag}
                               className="bg-primary-dark px-2 py-1 rounded text-xs text-gray-400"
                             >
@@ -355,7 +354,7 @@ const BlogPage = () => {
                 <BookOpen className="w-20 h-20 text-gray-600 mx-auto mb-6" />
                 <h2 className="text-3xl font-bold mb-4">No Blog Posts Yet</h2>
                 <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-                  We're working on creating amazing content about automation, AI, and business solutions. 
+                  We're working on creating amazing content about automation, AI, and business solutions.
                   Check back soon for tutorials, guides, and insights!
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -384,7 +383,7 @@ const BlogPage = () => {
                 Stay Updated with Automation Insights
               </h2>
               <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                Get the latest tutorials, free templates, and automation strategies 
+                Get the latest tutorials, free templates, and automation strategies
                 delivered to your inbox. Join 5,000+ business owners already automating smarter.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
