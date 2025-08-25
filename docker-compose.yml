@@ -29,11 +29,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Ensure PostgreSQL uses the correct authentication method
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      # Use md5 authentication which is more compatible
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     # Removed ports directive - Coolify handles port forwarding automatically
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_v2:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - iacovici-network
@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_data_v2:
     driver: local
 
 networks:
