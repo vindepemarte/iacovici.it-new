@@ -5,8 +5,8 @@ services:
     build: .
     # Removed ports directive - Coolify handles port forwarding automatically
     environment:
-      # Frontend API URL - use relative path for internal proxy
-      REACT_APP_API_URL: /api
+      # Frontend API URL - use backend domain for external calls
+      REACT_APP_API_URL: https://backend.iacovici.it/api
       # Site URL (this will be the public URL of the frontend service)
       REACT_APP_SITE_URL: ${REACT_APP_SITE_URL}
       # Stripe configuration
@@ -33,9 +33,8 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=md5"
     # Removed ports directive - Coolify handles port forwarding automatically
     volumes:
-      - postgres_data_v3:/var/lib/postgresql/data
+      - postgres_data_final:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/02-init-db.sql
     networks:
       - iacovici-network
     healthcheck:
@@ -82,7 +81,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data_v3:
+  postgres_data_final:
     driver: local
 
 networks:
