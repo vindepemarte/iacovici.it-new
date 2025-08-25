@@ -1,16 +1,53 @@
+// Global variable to store runtime-discovered API URL
+let runtimeApiUrl = null;
+
+// Function to set runtime API URL (called by RuntimeConfig)
+export const setRuntimeApiUrl = (url) => {
+  runtimeApiUrl = url;
+  console.log('🔧 Runtime API URL set to:', url);
+};
+
 // API configuration for production/development
 const getApiBaseUrl = () => {
-  // In production (Coolify), use the backend service URL from environment
+  // Debug logging for environment variables
+  console.log('🔍 Environment Debug Info:');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+  console.log('Runtime API URL:', runtimeApiUrl);
+  console.log('All REACT_APP vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP_')));
+  
+  // Priority 1: Runtime discovered URL (most reliable for Coolify)
+  if (runtimeApiUrl) {
+    console.log('✅ Using runtime-discovered API URL:', runtimeApiUrl);
+    return runtimeApiUrl;
+  }
+  
+  // Priority 2: Environment variable from build time
   if (process.env.REACT_APP_API_URL) {
+    console.log('✅ Using REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
   
-  // Development fallback
+  // Priority 3: Development fallback
   if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Using development localhost URL');
     return 'http://localhost:3001/api';
   }
   
-  // Production fallback (assumes backend is on same domain)
+  // Priority 4: Try to detect if we're in Coolify by checking URL patterns
+  const currentHost = window.location.hostname;
+  const currentProtocol = window.location.protocol;
+  
+  // If we're on a Coolify-like domain, try to construct backend URL
+  if (currentHost.includes('.coolify.') || currentHost.includes('-') && !currentHost.includes('localhost')) {
+    // Try to construct backend URL from current domain
+    const backendUrl = `${currentProtocol}//${currentHost.replace(/^[^-]*/, 'backend')}/api`;
+    console.log('🚀 Detected Coolify-like environment, using constructed backend URL:', backendUrl);
+    return backendUrl;
+  }
+  
+  // Final fallback (assumes backend is on same domain)
+  console.log('⚠️ Using production fallback /api');
   return '/api';
 };
 
