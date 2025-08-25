@@ -66,12 +66,14 @@ const Navbar = () => {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Link
-              to="/contact"
+            <a
+              href="https://cal.iacovici.it"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-primary text-sm"
             >
               Get Free Consultation
-            </Link>
+            </a>
           </div>
 
           {/* Mobile menu button */}
@@ -105,13 +107,15 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-2">
-              <Link
-                to="/contact"
+              <a
+                href="https://cal.iacovici.it"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full text-center btn-primary"
                 onClick={() => setIsOpen(false)}
               >
                 Get Free Consultation
-              </Link>
+              </a>
             </div>
           </div>
         </div>

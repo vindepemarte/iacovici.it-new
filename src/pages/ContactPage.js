@@ -306,10 +306,15 @@ const ContactPage = () => {
                     <p className="text-gray-300 mb-6">
                       Get 30 minutes of expert advice on how automation can transform your business.
                     </p>
-                    <Link to="/contact" className="btn-primary inline-flex items-center">
+                    <a 
+                      href="https://cal.iacovici.it" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn-primary inline-flex items-center"
+                    >
                       Book Your Slot
                       <ArrowRight className="w-5 h-5 ml-2" />
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </motion.div>

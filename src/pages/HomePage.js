@@ -136,9 +136,14 @@ const HomePage = () => {
                   with our proven n8n workflows and custom development services.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link to="/contact" className="btn-primary text-lg px-8 py-4">
+                  <a 
+                    href="https://cal.iacovici.it" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-primary text-lg px-8 py-4"
+                  >
                     Book Free Consultation
-                  </Link>
+                  </a>
                   <Link to="/templates" className="btn-secondary text-lg px-8 py-4">
                     Browse Free Templates
                   </Link>
@@ -383,9 +388,14 @@ const HomePage = () => {
                 discover what's possible for your business.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/contact" className="btn-primary text-lg px-8 py-4">
+                <a 
+                  href="https://cal.iacovici.it" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn-primary text-lg px-8 py-4"
+                >
                   Book Free Consultation
-                </Link>
+                </a>
                 <Link to="/templates" className="btn-secondary text-lg px-8 py-4">
                   Download Free Templates
                 </Link>
