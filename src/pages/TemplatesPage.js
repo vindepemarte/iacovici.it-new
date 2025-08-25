@@ -20,7 +20,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { getTemplates, trackTemplateDownload } from '../utils/api';
-import { mockTemplates } from '../data/mockData';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
@@ -84,42 +83,28 @@ const TemplatesPage = () => {
     }
   };
 
-  // Fetch templates from API with fallback to mock data
+  // Fetch templates from API
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
         setLoading(true);
-        let data;
+        setError(null);
         
-        try {
-          // Try to fetch from API first
-          data = await getTemplates();
-        } catch (apiError) {
-          console.warn('API failed, using fallback data:', apiError);
-          // Use mock data as fallback
-          data = mockTemplates;
-        }
+        // Fetch from database API
+        const data = await getTemplates();
         
         // Add slug property for linking
         const templatesWithSlug = data.map(template => ({
-          ...template,
-          slug: template.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-          rating: template.rating || generateRandomRating(), // Use database rating or generate random
-          icon: getIconComponent(template.icon_name)
-        }));
-        setTemplates(templatesWithSlug);
-      } catch (err) {
-        console.error('Error fetching templates:', err);
-        // Fallback to mock data if API fails
-        const { mockTemplates } = await import('../data/mockData');
-        const templatesWithSlug = mockTemplates.map(template => ({
           ...template,
           slug: template.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
           rating: template.rating || generateRandomRating(),
           icon: getIconComponent(template.icon_name)
         }));
         setTemplates(templatesWithSlug);
-        console.log('Using mock data as fallback');
+      } catch (err) {
+        console.error('Error fetching templates:', err);
+        setError(`Failed to load templates: ${err.message}`);
+        setTemplates([]);
       } finally {
         setLoading(false);
       }
@@ -270,7 +255,7 @@ const TemplatesPage = () => {
               
               {/* Search Bar */}
               <div className="max-w-2xl mx-auto relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search templates by name or description..."
@@ -301,7 +286,7 @@ const TemplatesPage = () => {
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category
                       ? 'bg-accent-gold text-primary-dark'
-                      : 'bg-primary-gray text-gray-300 hover:bg-accent-gold/20 hover:text-accent-gold'
+                      : 'bg-primary-gray text-gray-300 hover:bg-gray-600 hover:text-accent-gold'
                   }`}
                 >
                   {category}
@@ -325,8 +310,8 @@ const TemplatesPage = () => {
           <div className="fixed top-24 right-4 z-50">
             <div className={`px-6 py-4 rounded-lg shadow-lg flex items-center ${
               copySuccess.includes('Error') || copySuccess.includes('Failed') 
-                ? 'bg-red-900/90 text-red-200' 
-                : 'bg-green-900/90 text-green-200'
+                ? 'bg-red-900 bg-opacity-90 text-red-200' 
+                : 'bg-green-900 bg-opacity-90 text-green-200'
             }`}>
               {copySuccess.includes('Error') || copySuccess.includes('Failed') ? (
                 <AlertCircle className="w-5 h-5 mr-2" />
@@ -400,36 +385,58 @@ const TemplatesPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="card hover:scale-105 transition-transform duration-300"
+                    className="group card hover:scale-105 hover:shadow-2xl transition-all duration-300 overflow-hidden relative"
                   >
+                    {template.is_pro && (
+                      <div className="absolute top-4 right-4 bg-gradient-to-r from-accent-gold to-yellow-500 text-primary-dark px-3 py-1 rounded-full text-xs font-bold z-10">
+                        PRO
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-start mb-4">
-                      <div className="bg-primary-dark rounded-lg p-3">
+                      <div className="bg-gradient-to-br from-primary-dark to-primary-gray rounded-lg p-3 group-hover:scale-110 transition-transform duration-300">
                         {template.icon}
                       </div>
-                      <div className="flex items-center bg-primary-gray px-2 py-1 rounded">
+                      <div className="flex items-center bg-primary-gray group-hover:bg-gray-600 px-3 py-1 rounded-full transition-colors duration-300">
                         <Star className="w-4 h-4 text-accent-gold mr-1" />
                         <span className="text-sm font-medium">{template.rating}</span>
                       </div>
                     </div>
                     
-                    <h3 className="text-xl font-semibold mb-2">{template.title}</h3>
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-3">{template.description}</p>
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-accent-gold transition-colors duration-300">
+                      {template.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-3 leading-relaxed">
+                      {template.description}
+                    </p>
                     
-                    <div className="flex items-center text-sm text-gray-400 mb-4">
-                      <span className="bg-primary-gray px-2 py-1 rounded mr-2">{template.category}</span>
-                      <Download className="w-4 h-4 mr-1" />
-                      <span>{template.download_count}</span>
+                    <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
+                      <span className="bg-primary-gray group-hover:bg-gray-600 px-3 py-1 rounded-full transition-colors duration-300">
+                        {template.category}
+                      </span>
+                      <div className="flex items-center">
+                        <Download className="w-4 h-4 mr-1" />
+                        <span>{template.download_count.toLocaleString()}</span>
+                      </div>
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-6">
                       {template.is_pro ? (
-                        <span className="bg-accent-gold/20 text-accent-gold px-2 py-1 rounded text-xs font-medium">
-                          Pro Template
-                        </span>
+                        <div className="flex items-center bg-gradient-to-r from-yellow-600 to-yellow-500 text-accent-gold px-3 py-2 rounded-lg text-sm font-medium border border-yellow-600">
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          €{template.price}
+                        </div>
                       ) : (
-                        <span className="bg-green-900/30 text-green-400 px-2 py-1 rounded text-xs font-medium">
-                          Free
-                        </span>
+                        <div className="flex items-center bg-green-900 text-green-400 px-3 py-2 rounded-lg text-sm font-medium border border-green-400">
+                          <Download className="w-4 h-4 mr-1" />
+                          Free Download
+                        </div>
+                      )}
+                      {template.tutorial_link && (
+                        <div className="flex items-center bg-blue-900 text-blue-400 px-3 py-1 rounded text-xs">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Tutorial
+                        </div>
                       )}
                     </div>
                     
@@ -437,30 +444,32 @@ const TemplatesPage = () => {
                       {template.is_pro ? (
                         <button
                           onClick={() => handleWhatsAppPurchase(template)}
-                          className="btn-primary flex-1 flex items-center justify-center"
+                          className="group btn-primary flex-1 flex items-center justify-center hover:shadow-lg transition-all duration-300"
                         >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Buy €{template.price}
+                          <MessageSquare className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                          Purchase Now
                         </button>
                       ) : (
                         <>
                           <button
                             onClick={() => copyWorkflow(template)}
-                            className="btn-secondary flex-1 flex items-center justify-center"
+                            className="group btn-secondary flex-1 flex items-center justify-center hover:scale-105 transition-all duration-300"
                           >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy
+                            <Copy className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                            Copy JSON
                           </button>
                           <button
                             onClick={() => importToN8n(template)}
-                            className="btn-primary flex-1 flex items-center justify-center"
+                            className="group btn-primary flex-1 flex items-center justify-center hover:scale-105 transition-all duration-300"
                           >
-                            <ExternalLink className="w-4 h-4 mr-2" />
+                            <ExternalLink className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform duration-300" />
                             Import
                           </button>
                         </>
                       )}
                     </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-yellow-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   </motion.div>
                 ))}
               </div>
@@ -471,7 +480,7 @@ const TemplatesPage = () => {
 
       {/* Email Collection Modal */}
       {showEmailModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="card max-w-md w-full relative">
             <button
               onClick={handleEmailModalClose}

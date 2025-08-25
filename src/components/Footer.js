@@ -1,8 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MessageCircle, Github, ArrowUp } from 'lucide-react';
+import { Mail, MessageCircle, Github, Linkedin, ArrowUp } from 'lucide-react';
+import { useCompanyInfo, useContactInfo, useSocialLinks } from '../hooks/useSiteSettings';
 
 const Footer = () => {
+  const companyInfo = useCompanyInfo();
+  const contactInfo = useContactInfo();
+  const socialLinks = useSocialLinks();
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -41,42 +46,56 @@ const Footer = () => {
             <Link to="/" className="flex items-center space-x-3 mb-4">
               <img 
                 src="/logos/ia-logo-small-light.png" 
-                alt="Iacovici.it Logo" 
+                alt={`${companyInfo.name} Logo`}
                 className="h-8 w-auto"
               />
             </Link>
             <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-              AI & Automation Solutions to Grow Your Business. Specializing in n8n automations, 
-              AI implementation, and modern web development.
+              {companyInfo.description}
             </p>
             
             {/* Contact Info */}
             <div className="space-y-3">
               <a 
-                href="mailto:contact@iacovici.it" 
+                href={`mailto:${contactInfo.email}`}
                 className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
               >
                 <Mail size={16} />
-                <span className="text-sm">contact@iacovici.it</span>
+                <span className="text-sm">{contactInfo.email}</span>
               </a>
-              <a 
-                href="https://t.me/+FclaSAUdQDc0NGY0" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
-              >
-                <MessageCircle size={16} />
-                <span className="text-sm">Iacovici.it Group</span>
-              </a>
-              <a 
-                href="https://github.com/vindepemarte" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
-              >
-                <Github size={16} />
-                <span className="text-sm">github.com/vindepemarte</span>
-              </a>
+              {socialLinks.telegram && (
+                <a 
+                  href={socialLinks.telegram}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
+                >
+                  <MessageCircle size={16} />
+                  <span className="text-sm">{companyInfo.name} Group</span>
+                </a>
+              )}
+              {socialLinks.github && (
+                <a 
+                  href={socialLinks.github}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
+                >
+                  <Github size={16} />
+                  <span className="text-sm">GitHub Profile</span>
+                </a>
+              )}
+              {socialLinks.linkedin && (
+                <a 
+                  href={socialLinks.linkedin}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
+                >
+                  <Linkedin size={16} />
+                  <span className="text-sm">LinkedIn Profile</span>
+                </a>
+              )}
             </div>
           </div>
 
@@ -103,7 +122,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
           <div className="text-sm text-gray-400 mb-4 md:mb-0">
-            © {currentYear} Iacovici.it. All rights reserved.
+            © {currentYear} {companyInfo.name}. All rights reserved.
           </div>
           
           {/* Back to Top Button */}
@@ -119,7 +138,7 @@ const Footer = () => {
         {/* Additional Legal Info */}
         <div className="border-t border-gray-800 mt-6 pt-6">
           <p className="text-xs text-gray-500 text-center">
-            Iacovici.it is a technology consulting company specializing in automation and AI solutions. 
+            {companyInfo.name} is a technology consulting company specializing in automation and AI solutions. 
             All trademarks and registered trademarks are the property of their respective owners.
           </p>
         </div>

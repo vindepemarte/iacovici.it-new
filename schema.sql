@@ -75,6 +75,18 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create site_settings table for dynamic configuration
+CREATE TABLE IF NOT EXISTS site_settings (
+    id SERIAL PRIMARY KEY,
+    setting_key VARCHAR(255) UNIQUE NOT NULL,
+    setting_value TEXT,
+    setting_type VARCHAR(50) DEFAULT 'string', -- 'string', 'json', 'boolean', 'number'
+    is_public BOOLEAN DEFAULT TRUE, -- Whether this setting can be accessed publicly
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_templates_category ON templates(category);
 CREATE INDEX IF NOT EXISTS idx_templates_is_pro ON templates(is_pro);
@@ -83,6 +95,8 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_published ON blog_posts(is_published, 
 CREATE INDEX IF NOT EXISTS idx_contact_submissions_created ON contact_submissions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key);
+CREATE INDEX IF NOT EXISTS idx_site_settings_key ON site_settings(setting_key);
+CREATE INDEX IF NOT EXISTS idx_site_settings_public ON site_settings(is_public);
 
 -- Insert sample free templates
 INSERT INTO templates (title, description, category, is_pro, workflow_data_json, tutorial_link, icon_name, download_count, rating) VALUES 
@@ -189,7 +203,9 @@ Companies using this automation report 60% reduction in response time and 40% im
     'Build intelligent customer support with n8n and OpenAI. Automated responses, smart escalation, and 24/7 availability for your business.'
 );
 
--- Insert default admin user (password: admin123)
+-- Insert default admin user (password: admin123 - DEVELOPMENT ONLY!)
+-- WARNING: Change this password immediately in production!
+-- This is a bcrypt hash of 'admin123' for initial development setup
 INSERT INTO users (email, password_hash, name, role, api_key) VALUES 
 (
     'admin@iacovici.it',
@@ -199,6 +215,50 @@ INSERT INTO users (email, password_hash, name, role, api_key) VALUES
     'iak_live_' || md5(random()::text || clock_timestamp()::text || 'iacovici_secret_salt')
 ) ON CONFLICT (email) DO UPDATE SET 
     api_key = COALESCE(users.api_key, 'iak_live_' || md5(random()::text || clock_timestamp()::text || 'iacovici_secret_salt'));
+
+-- Insert default site settings
+INSERT INTO site_settings (setting_key, setting_value, setting_type, is_public, description) VALUES 
+-- Company Information
+('company_name', 'Iacovici.it', 'string', true, 'Company name'),
+('company_tagline', 'AI & Automation Solutions for Business Growth', 'string', true, 'Company tagline'),
+('company_description', 'Transform your business with intelligent automation, AI integration, and modern web solutions.', 'string', true, 'Company description'),
+
+-- Contact Information
+('contact_email', 'admin@iacovici.it', 'string', true, 'Main contact email'),
+('contact_phone', '+39 378 0875700', 'string', true, 'Contact phone number'),
+('whatsapp_number', '+393780875700', 'string', true, 'WhatsApp business number'),
+
+-- Address Information
+('company_address', '{"street": "Via Roma 123", "city": "Milan", "country": "Italy", "zip": "20100"}', 'json', true, 'Company address'),
+
+-- Social Media Links
+('social_github', 'https://github.com/iacovici', 'string', true, 'GitHub profile URL'),
+('social_linkedin', 'https://linkedin.com/in/iacovici', 'string', true, 'LinkedIn profile URL'),
+('social_telegram', 'https://t.me/iacovici', 'string', true, 'Telegram contact'),
+('social_twitter', '', 'string', true, 'Twitter profile URL (optional)'),
+
+-- Business Information
+('business_hours', '{"monday": "9:00-18:00", "tuesday": "9:00-18:00", "wednesday": "9:00-18:00", "thursday": "9:00-18:00", "friday": "9:00-18:00", "saturday": "closed", "sunday": "closed"}', 'json', true, 'Business hours'),
+('vat_number', 'IT12345678901', 'string', true, 'VAT number'),
+('tax_code', 'CVCDNL85R15F205X', 'string', true, 'Tax code'),
+
+-- Legal Information
+('privacy_policy_last_updated', '2024-01-01', 'string', true, 'Privacy policy last update date'),
+('terms_last_updated', '2024-01-01', 'string', true, 'Terms of service last update date'),
+('cookies_policy_last_updated', '2024-01-01', 'string', true, 'Cookie policy last update date'),
+
+-- Website Configuration
+('site_url', 'https://iacovici.it', 'string', true, 'Main site URL'),
+('calendar_booking_url', 'https://cal.iacovici.it', 'string', true, 'Calendar booking URL'),
+('google_analytics_id', '', 'string', false, 'Google Analytics ID (private)'),
+
+-- Email Configuration (private)
+('smtp_host', '', 'string', false, 'SMTP host (private)'),
+('smtp_port', '587', 'string', false, 'SMTP port (private)'),
+('smtp_user', '', 'string', false, 'SMTP user (private)'),
+('email_from_name', 'Iacovici.it Team', 'string', true, 'Email from name')
+
+ON CONFLICT (setting_key) DO NOTHING;
 
 -- Create triggers to automatically update the updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -216,4 +276,7 @@ CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON blog_posts
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_site_settings_updated_at BEFORE UPDATE ON site_settings
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

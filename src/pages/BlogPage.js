@@ -13,7 +13,6 @@ import {
   Loader
 } from 'lucide-react';
 import { getBlogPosts } from '../utils/api';
-import { mockBlogPosts } from '../data/mockData';
 
 const BlogPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,21 +22,15 @@ const BlogPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch blog posts from API with fallback to mock data
+  // Fetch blog posts from API
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        let posts;
+        setError(null);
         
-        try {
-          // Try to fetch from API first
-          posts = await getBlogPosts();
-        } catch (apiError) {
-          console.warn('API failed, using fallback data:', apiError);
-          // Use mock data as fallback
-          posts = mockBlogPosts;
-        }
+        // Fetch from database API
+        const posts = await getBlogPosts();
         
         // Transform the data to match the expected format
         const transformedPosts = posts.map(post => ({
@@ -46,17 +39,18 @@ const BlogPage = () => {
           slug: post.slug,
           excerpt: post.excerpt,
           author: post.author,
-          publicationDate: post.publication_date || post.publication_date,
+          publicationDate: post.publication_date || post.publicationDate,
           featuredImage: post.featured_image,
           tags: post.tags || [],
-          readTime: post.read_time || Math.ceil((post.excerpt?.length || 0) / 200) || 5, // Use read_time or estimate
+          readTime: post.read_time || Math.ceil((post.excerpt?.length || 0) / 200) || 5,
           seoTitle: post.seo_title,
           seoDescription: post.seo_description
         }));
         setBlogPosts(transformedPosts);
       } catch (err) {
         console.error('Error fetching blog posts:', err);
-        setError(err.message);
+        setError(`Failed to load blog posts: ${err.message}`);
+        setBlogPosts([]);
       } finally {
         setLoading(false);
       }

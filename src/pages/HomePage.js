@@ -16,8 +16,12 @@ import {
   Download,
   Star
 } from 'lucide-react';
+import { useCompanyInfo, useSiteUrls } from '../hooks/useSiteSettings';
 
 const HomePage = () => {
+  const companyInfo = useCompanyInfo();
+  const siteUrls = useSiteUrls();
+  
   const stats = [
     { value: '5000+', label: 'Businesses Automated' },
     { value: '50+', label: 'Workflow Templates' },
@@ -100,19 +104,19 @@ const HomePage = () => {
   return (
     <>
       <Helmet>
-        <title>AI & Automation Solutions for Business Growth | Iacovici.it</title>
-        <meta name="description" content="Transform your business with intelligent automation, AI integration, and modern web solutions. Save time, reduce errors, and scale efficiently with our proven n8n workflows and custom development services." />
+        <title>{companyInfo.tagline} | {companyInfo.name}</title>
+        <meta name="description" content={companyInfo.description} />
         <meta name="keywords" content="n8n automation, AI solutions, web development, server management, Coolify, business automation, workflow automation" />
-        <meta property="og:title" content="AI & Automation Solutions for Business Growth | Iacovici.it" />
-        <meta property="og:description" content="Transform your business with intelligent automation, AI integration, and modern web solutions. Save time, reduce errors, and scale efficiently with our proven n8n workflows and custom development services." />
+        <meta property="og:title" content={`${companyInfo.tagline} | ${companyInfo.name}`} />
+        <meta property="og:description" content={companyInfo.description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://iacovici.it" />
+        <meta property="og:url" content={siteUrls.main} />
         <meta property="og:image" content="/logos/ia-logo-web.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AI & Automation Solutions for Business Growth | Iacovici.it" />
-        <meta name="twitter:description" content="Transform your business with intelligent automation, AI integration, and modern web solutions. Save time, reduce errors, and scale efficiently with our proven n8n workflows and custom development services." />
+        <meta name="twitter:title" content={`${companyInfo.tagline} | ${companyInfo.name}`} />
+        <meta name="twitter:description" content={companyInfo.description} />
         <meta name="twitter:image" content="/logos/ia-logo-web.png" />
-        <link rel="canonical" href="https://iacovici.it" />
+        <link rel="canonical" href={siteUrls.main} />
       </Helmet>
       
       <div className="min-h-screen">
@@ -126,18 +130,16 @@ const HomePage = () => {
                 transition={{ duration: 0.6 }}
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                  <span className="gradient-text">AI & Automation Solutions</span>
+                  <span className="gradient-text">{companyInfo.tagline.split(' to ')[0]}</span>
                   <br />
-                  <span className="text-primary-light">to Grow Your Business</span>
+                  <span className="text-primary-light">to {companyInfo.tagline.split(' to ')[1] || 'Grow Your Business'}</span>
                 </h1>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                  Transform your business with intelligent automation, AI integration, 
-                  and modern web solutions. Save time, reduce errors, and scale efficiently 
-                  with our proven n8n workflows and custom development services.
+                  {companyInfo.description}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <a 
-                    href="https://cal.iacovici.it" 
+                    href={siteUrls.calendar}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn-primary text-lg px-8 py-4"
@@ -159,7 +161,7 @@ const HomePage = () => {
                 <div className="bg-primary-gray rounded-2xl p-8 shadow-2xl">
                   <img 
                     src="/logos/ia-presentation-picture.png" 
-                    alt="Iacovici.it Solutions" 
+                    alt={`${companyInfo.name} Solutions`}
                     className="w-full h-auto"
                     loading="lazy"
                   />

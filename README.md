@@ -184,6 +184,45 @@ Replace logo files in `/public/logos/`:
 - **About**: Edit `src/pages/AboutPage.js`
 - **Templates**: Update database via SQL or admin interface
 
+## 🔒 Security Considerations
+
+### ⚠️ IMPORTANT: Change Default Passwords
+
+**The database schema includes a default admin user for development setup only:**
+- **Email**: `admin@iacovici.it`
+- **Password**: `admin123`
+
+**🚨 CRITICAL**: You MUST change this password before deploying to production!
+
+1. **Via Admin Dashboard**: Log in and go to Account Settings > Change Password
+2. **Via Database**: Update the password hash directly in the users table
+
+### Production Security Checklist
+
+- [ ] Change default admin password
+- [ ] Set strong `POSTGRES_PASSWORD` environment variable
+- [ ] Set secure `JWT_SECRET` environment variable  
+- [ ] Configure HTTPS/SSL certificates
+- [ ] Review and update all API keys
+- [ ] Enable firewall rules for database access
+- [ ] Set up database backups
+- [ ] Configure CORS origins for production domains
+
+### Environment Variables Security
+
+**Required for Production:**
+```env
+# Database (REQUIRED)
+POSTGRES_PASSWORD=your_very_secure_password
+JWT_SECRET=your_jwt_secret_key_min_32_chars
+
+# Optional but Recommended
+STRIPE_SECRET_KEY=sk_live_your_production_key
+SMTP_PASS=your_email_service_password
+```
+
+**Never commit these to version control!**
+
 ## 🔧 Configuration
 
 ### Stripe Setup

@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const stripeRoutes = require('./routes/stripe');
 const n8nApiRoutes = require('./routes/n8n-api');
+const settingsRoutes = require('./routes/settings');
 
 // Import database connection
 const { pool } = require('./config/database');
@@ -58,6 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', stripeRoutes);
 app.use('/api/n8n', n8nApiRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

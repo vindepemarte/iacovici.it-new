@@ -1,8 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useCompanyInfo, useContactInfo, useSiteSettings } from '../hooks/useSiteSettings';
 
 const PrivacyPolicy = () => {
+  const companyInfo = useCompanyInfo();
+  const contactInfo = useContactInfo();
+  const { settings } = useSiteSettings();
+  
+  const formatAddress = (address) => {
+    if (typeof address === 'string') return address;
+    if (typeof address === 'object' && address) {
+      return `${address.street}, ${address.city}, ${address.country} ${address.zip}`;
+    }
+    return 'Via Roma 123, Milan, Italy 20100';
+  };
+  
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-4xl mx-auto container-padding">
@@ -15,10 +28,10 @@ const PrivacyPolicy = () => {
           <h1 className="text-3xl md:text-4xl font-bold mb-8">Privacy Policy</h1>
           
           <div className="prose prose-invert max-w-none">
-            <p className="text-gray-300 mb-6"><strong>Last Updated:</strong> August 24, 2025</p>
+            <p className="text-gray-300 mb-6"><strong>Last Updated:</strong> {settings.privacy_policy_last_updated || 'August 24, 2025'}</p>
             
             <p className="text-gray-300 mb-6">
-              At Iacovici.it, we respect your privacy and are committed to protecting your personal data. 
+              At {companyInfo.name}, we respect your privacy and are committed to protecting your personal data. 
               This privacy policy will inform you about how we look after your personal data when you visit 
               our website and tell you about your privacy rights and how the law protects you.
             </p>
@@ -27,7 +40,7 @@ const PrivacyPolicy = () => {
             
             <p className="text-gray-300 mb-4">
               <strong>Purpose of this privacy policy:</strong> This privacy policy aims to give you information 
-              on how Iacovici.it collects and processes your personal data through your use of this website, 
+              on how {companyInfo.name} collects and processes your personal data through your use of this website, 
               including any data you may provide through contact forms or when purchasing services.
             </p>
             
@@ -110,8 +123,8 @@ const PrivacyPolicy = () => {
             </p>
             
             <ul className="list-disc list-inside text-gray-300 mb-4 space-y-2">
-              <li>Email: privacy@iacovici.it</li>
-              <li>Address: [Your Business Address]</li>
+              <li>Email: {contactInfo.email}</li>
+              <li>Address: {formatAddress(contactInfo.address)}</li>
             </ul>
           </div>
         </div>

@@ -1,4 +1,20 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+// API configuration for production/development
+const getApiBaseUrl = () => {
+  // In production (Coolify), use the backend service URL from environment
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Development fallback
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3001/api';
+  }
+  
+  // Production fallback (assumes backend is on same domain)
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
@@ -170,6 +186,50 @@ export const createCheckoutSession = async (templateId, email) => {
 
 export const verifyPaymentSuccess = async (sessionId) => {
   return await apiRequest(`/payments/success?session_id=${sessionId}`);
+};
+
+// Site Settings API functions
+export const getPublicSettings = async () => {
+  return await apiRequest('/settings/public');
+};
+
+export const getSiteSettings = async () => {
+  return await apiRequest('/settings', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
+};
+
+export const updateSiteSetting = async (key, value, type = 'string', isPublic = true, description) => {
+  return await apiRequest(`/settings/${key}`, {
+    method: 'PUT',
+    body: JSON.stringify({ value, type, isPublic, description }),
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+export const bulkUpdateSettings = async (settings) => {
+  return await apiRequest('/settings', {
+    method: 'PUT',
+    body: JSON.stringify({ settings }),
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+export const deleteSiteSetting = async (key) => {
+  return await apiRequest(`/settings/${key}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
 };
 
 // Export the API_BASE_URL for use in other modules

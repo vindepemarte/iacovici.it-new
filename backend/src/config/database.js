@@ -10,7 +10,12 @@ const pool = new Pool({
   user: process.env.POSTGRES_USER || 'iacovici_user',
   host: process.env.POSTGRES_HOST || 'localhost',
   database: process.env.POSTGRES_DB || 'iacovici_db',
-  password: process.env.POSTGRES_PASSWORD || 'secure_password_change_in_production',
+  password: process.env.POSTGRES_PASSWORD || (() => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('POSTGRES_PASSWORD environment variable is required in production');
+    }
+    return 'development_only_password';
+  })(),
   port: parseInt(process.env.POSTGRES_PORT) || 5432,
   // Connection pool settings
   max: 20,
