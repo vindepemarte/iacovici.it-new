@@ -60,22 +60,22 @@ const Footer = () => {
                 <span className="text-sm">contact@iacovici.it</span>
               </a>
               <a 
-                href="https://t.me/iacovici" 
+                href="https://t.me/+FclaSAUdQDc0NGY0" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
               >
                 <MessageCircle size={16} />
-                <span className="text-sm">@iacovici</span>
+                <span className="text-sm">Iacovici.it Group</span>
               </a>
               <a 
-                href="https://github.com/iacovici" 
+                href="https://github.com/vindepemarte" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-gray-400 hover:text-accent-gold transition-colors duration-300"
               >
                 <Github size={16} />
-                <span className="text-sm">github.com/iacovici</span>
+                <span className="text-sm">github.com/vindepemarte</span>
               </a>
             </div>
           </div>

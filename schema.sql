@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255),
     role VARCHAR(50) DEFAULT 'admin',
     is_active BOOLEAN DEFAULT TRUE,
+    api_key VARCHAR(255) UNIQUE,
     last_login TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -81,6 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_published ON blog_posts(is_published, publication_date DESC);
 CREATE INDEX IF NOT EXISTS idx_contact_submissions_created ON contact_submissions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key);
 
 -- Insert sample free templates
 INSERT INTO templates (title, description, category, is_pro, workflow_data_json, tutorial_link, icon_name, download_count, rating) VALUES 
@@ -187,14 +189,16 @@ Companies using this automation report 60% reduction in response time and 40% im
     'Build intelligent customer support with n8n and OpenAI. Automated responses, smart escalation, and 24/7 availability for your business.'
 );
 
--- Insert default admin user
-INSERT INTO users (email, password_hash, name, role) VALUES 
+-- Insert default admin user (password: admin123)
+INSERT INTO users (email, password_hash, name, role, api_key) VALUES 
 (
     'admin@iacovici.it',
     '$2a$10$42uwZyATRNtHZOJglb/IX./2Gx8ShCVRDCJcP6MTeaUSUs66DJ0vi',
     'Administrator',
-    'admin'
-);
+    'admin',
+    'iak_live_' || md5(random()::text || clock_timestamp()::text)
+) ON CONFLICT (email) DO UPDATE SET 
+    api_key = COALESCE(users.api_key, 'iak_live_' || md5(random()::text || clock_timestamp()::text));
 
 -- Create triggers to automatically update the updated_at column
 CREATE OR REPLACE FUNCTION update_updated_at_column()

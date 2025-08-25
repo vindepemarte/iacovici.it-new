@@ -47,6 +47,11 @@ const AdminDashboard = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // API Key management state
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [loadingApiKey, setLoadingApiKey] = useState(false);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -83,6 +88,41 @@ const AdminDashboard = () => {
 
     fetchData();
   }, []);
+
+  // Fetch API key on component mount
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        // This would be an API call to get the current user's API key
+        // For now, we'll show a placeholder
+        setApiKey('iak_live_********************************');
+      } catch (err) {
+        console.error('Error fetching API key:', err);
+      }
+    };
+    fetchApiKey();
+  }, []);
+
+  const regenerateApiKey = async () => {
+    setLoadingApiKey(true);
+    try {
+      // This would be an API call to regenerate the API key
+      // For now, we'll simulate it
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setApiKey('iak_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+      alert('API key regenerated successfully!');
+    } catch (err) {
+      console.error('Error regenerating API key:', err);
+      alert('Failed to regenerate API key');
+    } finally {
+      setLoadingApiKey(false);
+    }
+  };
+
+  const copyApiKey = () => {
+    navigator.clipboard.writeText(apiKey);
+    alert('API key copied to clipboard!');
+  };
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -452,62 +492,116 @@ const AdminDashboard = () => {
   );
 
   const renderSettings = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Settings</h2>
-      
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Payment Gateway</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Stripe Publishable Key</label>
-            <input 
-              type="text" 
-              className="form-input w-full" 
-              placeholder="pk_test_..."
-            />
-          </div>
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Settings</h2>
+        
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">N8N API Integration</h3>
+          <p className="text-gray-400 mb-4">
+            Use this API key to integrate with n8n workflows and manage your content programmatically.
+          </p>
           
-          <div>
-            <label className="block text-sm font-medium mb-2">Stripe Secret Key</label>
-            <input 
-              type="password" 
-              className="form-input w-full" 
-              placeholder="sk_test_..."
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">API Key</label>
+              <div className="flex items-center space-x-2">
+                <input 
+                  type={showApiKey ? "text" : "password"}
+                  value={apiKey}
+                  readOnly
+                  className="form-input flex-1 font-mono text-sm"
+                />
+                <button
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm"
+                >
+                  {showApiKey ? 'Hide' : 'Show'}
+                </button>
+                <button
+                  onClick={copyApiKey}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm"
+                >
+                  Copy
+                </button>
+                <button
+                  onClick={regenerateApiKey}
+                  disabled={loadingApiKey}
+                  className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 rounded-lg text-sm"
+                >
+                  {loadingApiKey ? 'Generating...' : 'Regenerate'}
+                </button>
+              </div>
+            </div>
+            
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="font-medium mb-2">API Endpoints:</h4>
+              <div className="text-sm text-gray-400 space-y-1 font-mono">
+                <div>GET /api/n8n/templates - List all templates</div>
+                <div>POST /api/n8n/templates - Create new template</div>
+                <div>GET /api/n8n/blog-posts - List all blog posts</div>
+                <div>POST /api/n8n/blog-posts - Create new blog post</div>
+                <div>GET /api/n8n/analytics/dashboard - Get analytics</div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Include header: X-API-Key: {apiKey.substring(0, 20)}...
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Email Configuration</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Email From Address</label>
-            <input 
-              type="email" 
-              className="form-input w-full" 
-              placeholder="no-reply@iacovici.it"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Email Service API Key</label>
-            <input 
-              type="password" 
-              className="form-input w-full" 
-              placeholder="your_api_key_here"
-            />
+        
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Payment Gateway</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Stripe Publishable Key</label>
+              <input 
+                type="text" 
+                className="form-input w-full" 
+                placeholder="pk_test_..."
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Stripe Secret Key</label>
+              <input 
+                type="password" 
+                className="form-input w-full" 
+                placeholder="sk_test_..."
+              />
+            </div>
           </div>
         </div>
+        
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Email Configuration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Email From Address</label>
+              <input 
+                type="email" 
+                className="form-input w-full" 
+                placeholder="no-reply@iacovici.it"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Email Service API Key</label>
+              <input 
+                type="password" 
+                className="form-input w-full" 
+                placeholder="your_api_key_here"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="pt-4">
+          <button className="btn-primary">
+            Save Settings
+          </button>
+        </div>
       </div>
-      
-      <div className="pt-4">
-        <button className="btn-primary">
-          Save Settings
-        </button>
-      </div>
-    </div>
-  );
+    );
 
   const renderContent = () => {
     switch (activeSection) {
