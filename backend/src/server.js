@@ -23,7 +23,17 @@ const PORT = process.env.BACKEND_PORT || 3001;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://iacovici.it',
+    'https://www.iacovici.it',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(morgan('combined'));
 app.use(express.json());
 // Special middleware for Stripe webhooks (needs raw body)

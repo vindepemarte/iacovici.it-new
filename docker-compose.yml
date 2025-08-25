@@ -5,8 +5,8 @@ services:
     build: .
     # Removed ports directive - Coolify handles port forwarding automatically
     environment:
-      # Frontend API URL (this will be the public URL of the backend service)
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      # Frontend API URL - use relative path for internal proxy
+      REACT_APP_API_URL: /api
       # Site URL (this will be the public URL of the frontend service)
       REACT_APP_SITE_URL: ${REACT_APP_SITE_URL}
       # Stripe configuration
