@@ -60,6 +60,8 @@ services:
       - 'POSTGRES_USER=${POSTGRES_USER}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
       - 'POSTGRES_DB=${POSTGRES_DB}'
+    ports:
+      - "5433:5432"
     volumes:
       - 'iacovici_postgresql_data_v2:/var/lib/postgresql/data'
       - './schema.sql:/docker-entrypoint-initdb.d/01-schema.sql'
