@@ -19,7 +19,6 @@ const settingsRoutes = require('./routes/settings');
 
 // Import database connection
 const { pool } = require('./config/database');
-const { updateSettingsFromEnv } = require('./utils/updateSettingsFromEnv');
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -43,19 +42,12 @@ app.use(express.json());
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.static(path.join(__dirname, '../../public')));
 
-// Test database connection and update settings from environment
-pool.query('SELECT NOW()', async (err, res) => {
+// Test database connection
+pool.query('SELECT NOW()', (err, res) => {
   if (err) {
     console.error('Database connection error:', err.stack);
   } else {
     console.log('Database connected successfully');
-    
-    // Update site settings from environment variables
-    try {
-      await updateSettingsFromEnv();
-    } catch (err) {
-      console.warn('Warning: Could not update settings from environment variables:', err.message);
-    }
   }
 });
 
