@@ -19,6 +19,7 @@ const settingsRoutes = require('./routes/settings');
 
 // Import database connection
 const { pool } = require('./config/database');
+const { initializeDatabase } = require('./utils/initDatabase');
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -42,14 +43,21 @@ app.use(express.json());
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.static(path.join(__dirname, '../../public')));
 
-// Test database connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Database connection error:', err.stack);
-  } else {
-    console.log('Database connected successfully');
-  }
-});
+// Initialize database and test connection
+initializeDatabase()
+  .then(() => {
+    console.log('✅ Database initialization completed');
+    
+    // Test basic connection
+    return pool.query('SELECT NOW()');
+  })
+  .then((res) => {
+    console.log('✅ Database connected successfully');
+  })
+  .catch((err) => {
+    console.error('❌ Database initialization failed:', err.stack);
+    process.exit(1);
+  });
 
 // Routes
 app.use('/api/templates', templateRoutes);

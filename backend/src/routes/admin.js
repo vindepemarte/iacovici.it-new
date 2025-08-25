@@ -109,25 +109,28 @@ router.post('/templates', async (req, res) => {
   try {
     const { id, title, description, category, isPro, price, workflowData, tutorialLink, iconName } = req.body;
     
+    // Ensure workflowData is not null - provide default if missing
+    const safeWorkflowData = workflowData || { nodes: [], connections: {} };
+    
     let result;
     if (id) {
       // Update existing template
       result = await query(
         'UPDATE templates SET title = $1, description = $2, category = $3, is_pro = $4, price = $5, workflow_data_json = $6, tutorial_link = $7, icon_name = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9 RETURNING *',
-        [title, description, category, isPro, price, workflowData, tutorialLink, iconName, id]
+        [title, description, category, isPro, price, safeWorkflowData, tutorialLink, iconName, id]
       );
     } else {
       // Create new template
       result = await query(
         'INSERT INTO templates (title, description, category, is_pro, price, workflow_data_json, tutorial_link, icon_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-        [title, description, category, isPro, price, workflowData, tutorialLink, iconName]
+        [title, description, category, isPro, price, safeWorkflowData, tutorialLink, iconName]
       );
     }
     
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Template creation/update error:', err);
+    res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
 

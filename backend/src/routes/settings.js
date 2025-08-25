@@ -5,9 +5,12 @@ const { query } = require('../config/database');
 // Get all public site settings (no authentication required)
 router.get('/public', async (req, res) => {
   try {
+    console.log('📝 Fetching public site settings...');
     const result = await query(
       'SELECT setting_key, setting_value, setting_type FROM site_settings WHERE is_public = true ORDER BY setting_key'
     );
+    
+    console.log('📊 Found', result.rows.length, 'public settings');
     
     // Transform results into key-value pairs with proper type casting
     const settings = {};
@@ -30,10 +33,12 @@ router.get('/public', async (req, res) => {
       settings[row.setting_key] = value;
     });
     
+    console.log('✅ Returning settings:', Object.keys(settings));
     res.json(settings);
   } catch (err) {
-    console.error('Error fetching public settings:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Error fetching public settings:', err);
+    console.error('Database error details:', err.message);
+    res.status(500).json({ error: 'Database connection error: ' + err.message });
   }
 });
 
